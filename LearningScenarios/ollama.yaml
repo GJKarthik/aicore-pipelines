@@ -23,7 +23,7 @@ spec:
     spec: |
       predictor:
         imagePullSecrets:
-        - name: Default
+        - name: ollamadocker
         minReplicas: 1
         maxReplicas: 1
         containers:
