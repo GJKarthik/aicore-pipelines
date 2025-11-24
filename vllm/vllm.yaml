@@ -58,13 +58,13 @@ spec:
     spec: |
       predictor:
         imagePullSecrets:
-        - name: <YOUR_DOCKER_SECRET>
+        - name: ollamadocker
         minReplicas: 1
         maxReplicas: 1
         containers:
         - name: kserve-container
           # --- MODIFIED: Use your custom image name ---
-          image: <YOUR_DOCKER_REGISTRY>/<YOUR_DOCKER_USER>/vllm-gemma-2-2b-it:aicore
+          image: docker.io/gjkarthik/vllm-gemma-2-2b-it:aicore
           ports:
             - containerPort: 8000
               protocol: TCP
