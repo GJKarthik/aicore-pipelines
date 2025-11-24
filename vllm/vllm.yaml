@@ -17,7 +17,7 @@ spec:
       - name: modelName 
         # Set default to the absolute path of the model directory *inside your Docker image*.
         # E.g., if your model is in /gemma-2b-it/ in the image, use that path.
-        default: "/app/local_model/gemma-2-2b-it" 
+        default: "/app/model" 
         type: string 
         description: "The absolute file path to the model directory baked into the Docker image."
       # --- REQUIRED PARAMETER for GPU provisioning ---
