@@ -40,22 +40,32 @@ spec:
             requests:
               memory: "4Gi"
               cpu: "2000m"
+              nvidia.com/gpu: "1"
             limits:
               memory: "8Gi"
               cpu: "4000m"
+              nvidia.com/gpu: "1"
           livenessProbe:
             httpGet:
               path: /health
-              port: 8080
-            initialDelaySeconds: 30
+              port: 8000
+            initialDelaySeconds: 60
             periodSeconds: 30
             timeoutSeconds: 10
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
-              port: 8080
-            initialDelaySeconds: 30
+              port: 8000
+            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
