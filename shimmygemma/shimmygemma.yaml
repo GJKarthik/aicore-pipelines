@@ -30,8 +30,9 @@ spec:
         - name: kserve-container
           image: docker.io/gjkarthik/shimmy:latest
           ports:
-            - containerPort: 8080
-              protocol: TCP
+          - containerPort: 8000
+            name: http1
+            protocol: TCP
           env:
             - name: SHIMMY_PORT
               value: "8080"
