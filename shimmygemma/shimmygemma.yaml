@@ -1,7 +1,7 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
 metadata:
-  name: shimmy-simple
+  name: shimmy-lightweight
   annotations:
     scenarios.ai.sap.com/description: "Simple Shimmy inference server - binary only, no model baking"
     scenarios.ai.sap.com/name: "shimmy-lightweight"
