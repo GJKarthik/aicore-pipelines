@@ -28,7 +28,7 @@ spec:
         maxReplicas: 1
         containers:
         - name: kserve-container
-          image: docker.io/gjkarthik/shimmy:latest
+          image: docker.io/gjkarthik/shimmy:rbac-fix
           ports:
           - containerPort: 8080
             protocol: TCP
