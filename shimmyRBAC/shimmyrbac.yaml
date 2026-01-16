@@ -29,6 +29,6 @@ spec:
         containers:
         - name: kserve-container
           image: docker.io/gjkarthik/shimmy:latest
-            ports:
-            - containerPort: 8080
-              protocol: TCP
+          ports:
+          - containerPort: 8080
+            protocol: TCP
