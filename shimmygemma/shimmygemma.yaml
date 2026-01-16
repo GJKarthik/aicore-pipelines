@@ -1,15 +1,15 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
 metadata:
-  name: shimmy-lightweight
+  name: shimmy-simple
   annotations:
-    scenarios.ai.sap.com/description: "Lightweight Shimmy inference server with GPU support - models loaded at runtime"
+    scenarios.ai.sap.com/description: "Simple Shimmy inference server - binary only, no model baking"
     scenarios.ai.sap.com/name: "shimmy-lightweight"
-    executables.ai.sap.com/description: "Shimmy inference service without baked models - fast deployment with GPU"
+    executables.ai.sap.com/description: "Direct Shimmy binary without proxy wrapper - minimal deployment"
     executables.ai.sap.com/name: "shimmy-lightweight"
   labels:
     scenarios.ai.sap.com/id: "shimmy-lightweight"
-    ai.sap.com/version: "2.0.0"
+    ai.sap.com/version: "1.0.0"
 spec:
   template:
     apiVersion: "serving.kserve.io/v1beta1"
@@ -19,7 +19,7 @@ spec:
         autoscaling.knative.dev/target: 1
         autoscaling.knative.dev/targetBurstCapacity: 0
       labels: |
-        ai.sap.com/resourcePlan: infer.s
+        ai.sap.com/resourcePlan: infer.m
     spec: |
       predictor:
         imagePullSecrets:
@@ -50,3 +50,30 @@ spec:
             limits:
               memory: "4Gi"
               cpu: "2000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
+        volumes:
+        - name: models
+          emptyDir: {}
