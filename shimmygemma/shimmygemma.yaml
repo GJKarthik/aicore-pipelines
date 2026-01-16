@@ -23,7 +23,7 @@ spec:
     spec: |
       predictor:
         imagePullSecrets:
-        - name: olamadocker
+        - name: ollamadocker
         minReplicas: 1
         maxReplicas: 1
         containers:
@@ -32,35 +32,3 @@ spec:
           ports:
           - containerPort: 8080
             protocol: TCP
-          env:
-          - name: SHIMMY_PORT
-            value: "8080"
-          - name: SHIMMY_MODEL_PATH
-            value: "/models"
-          volumeMounts:
-          - name: models
-            mountPath: /models
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "500m"
-            limits:
-              memory: "2Gi"
-              cpu: "1000m"
-          livenessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-          readinessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 3
-        volumes:
-        - name: models
-          emptyDir: {}
