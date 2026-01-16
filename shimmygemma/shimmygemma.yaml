@@ -28,7 +28,7 @@ spec:
         maxReplicas: 3
         containers:
         - name: kserve-container
-          image: docker.io/gjkarthik/shimmy@sha256:2361420ba9c5ca088d0d6a6871483008f83c4ff38393fa4ff5905785db238e63
+          image: docker.io/gjkarthik/shimmy@latest
           ports:
           - containerPort: 8080
             name: http1
