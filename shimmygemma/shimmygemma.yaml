@@ -30,5 +30,50 @@ spec:
         - name: kserve-container
           image: docker.io/gjkarthik/shimmy:latest
           ports:
-            - containerPort: 8080
-              protocol: TCP
+          - containerPort: 8080
+            protocol: TCP
+          env:
+          - name: SHIMMY_PORT
+            value: "8080"
+          - name: SHIMMY_MODEL_PATH
+            value: "/models"
+          volumeMounts:
+          - name: models
+            mountPath: /models
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /v1/models
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
+        volumes:
+        - name: models
+          emptyDir: {}
