@@ -14,15 +14,15 @@ spec:
   template:
     apiVersion: "serving.kserve.io/v1beta1"
     metadata:
-      annotations:
-        autoscaling.knative.dev/metric: "concurrency"
-        autoscaling.knative.dev/target: "1"
-        autoscaling.knative.dev/targetBurstCapacity: "0"
-        sidecar.istio.io/rewriteAppHTTPProbers: "true"
-        traffic.sidecar.istio.io/excludeInboundPorts: "8080"
-      labels:
-        ai.sap.com/resourcePlan: "infer.s"
-    spec:
+      annotations: |
+        autoscaling.knative.dev/metric: concurrency
+        autoscaling.knative.dev/target: 1
+        autoscaling.knative.dev/targetBurstCapacity: 0
+        sidecar.istio.io/rewriteAppHTTPProbers: true
+        traffic.sidecar.istio.io/excludeInboundPorts: 8080
+      labels: |
+        ai.sap.com/resourcePlan: infer.s
+    spec: |
       predictor:
         imagePullSecrets:
           - name: ollamadocker
