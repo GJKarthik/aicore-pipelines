@@ -14,55 +14,55 @@ spec:
   template:
     apiVersion: "serving.kserve.io/v1beta1"
     metadata:
-      annotations: |
-        autoscaling.knative.dev/metric: concurrency
-        autoscaling.knative.dev/target: 1
-        autoscaling.knative.dev/targetBurstCapacity: 0
+      annotations:
+        autoscaling.knative.dev/metric: "concurrency"
+        autoscaling.knative.dev/target: "1"
+        autoscaling.knative.dev/targetBurstCapacity: "0"
         sidecar.istio.io/rewriteAppHTTPProbers: "true"
         traffic.sidecar.istio.io/excludeInboundPorts: "8080"
-      labels: |
-        ai.sap.com/resourcePlan: infer.s
-    spec: |
+      labels:
+        ai.sap.com/resourcePlan: "infer.s"
+    spec:
       predictor:
         imagePullSecrets:
-        - name: ollamadocker
+          - name: ollamadocker
         minReplicas: 1
         maxReplicas: 1
         containers:
-        - name: kserve-container
-          image: docker.io/gjkarthik/shimmy:latest
-          ports:
-          - containerPort: 8080
-            protocol: TCP
-          env:
-          - name: SHIMMY_PORT
-            value: "8080"
-          - name: SHIMMY_MODEL_PATH
-            value: "/models"
-          volumeMounts:
-          - name: models
-            mountPath: /models
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "500m"
-            limits:
-              memory: "2Gi"
-              cpu: "1000m"
-          livenessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-          readinessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 3
+          - name: kserve-container
+            image: docker.io/gjkarthik/shimmy:latest
+            ports:
+              - containerPort: 8080
+                protocol: TCP
+            env:
+              - name: SHIMMY_PORT
+                value: "8080"
+              - name: SHIMMY_MODEL_PATH
+                value: "/models"
+            volumeMounts:
+              - name: models
+                mountPath: /models
+            resources:
+              requests:
+                memory: "512Mi"
+                cpu: "500m"
+              limits:
+                memory: "2Gi"
+                cpu: "1000m"
+            livenessProbe:
+              tcpSocket:
+                port: 8080
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+            readinessProbe:
+              tcpSocket:
+                port: 8080
+              initialDelaySeconds: 5
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 3
         volumes:
-        - name: models
-          emptyDir: {}
+          - name: models
+            emptyDir: {}
