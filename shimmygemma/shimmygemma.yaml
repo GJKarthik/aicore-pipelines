@@ -1,15 +1,15 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
 metadata:
-  name: shimmy-gemma-2b
+  name: shimmy-lightweight
   annotations:
-    scenarios.ai.sap.com/description: "Run Shimmy inference server with Gemma-2B-IT model on SAP AI Core"
-    scenarios.ai.sap.com/name: "shimmy-gemma-2b"
-    executables.ai.sap.com/description: "Shimmy inference service with baked-in Gemma-2B-IT Q4_K_M model"
+    scenarios.ai.sap.com/description: "Lightweight Shimmy inference server with GPU support - models loaded at runtime"
+    scenarios.ai.sap.com/name: "shimmy-lightweight"
+    executables.ai.sap.com/description: "Shimmy inference service without baked models - fast deployment with GPU"
     executables.ai.sap.com/name: "shimmy-inference"
   labels:
     scenarios.ai.sap.com/id: "shimmy-inference"
-    ai.sap.com/version: "1.0.0"
+    ai.sap.com/version: "2.0.0"
 spec:
   template:
     apiVersion: "serving.kserve.io/v1beta1"
@@ -28,7 +28,7 @@ spec:
         maxReplicas: 3
         containers:
         - name: kserve-container
-          image: docker.io/gjkarthik/shimmy:latest
+          image: docker.io/gjkarthik/shimmy:lightweight
           ports:
           - containerPort: 8000
             name: http1
@@ -36,6 +36,13 @@ spec:
           env:
             - name: SHIMMY_PORT
               value: "8080"
+            - name: SHIMMY_HOST
+              value: "0.0.0.0"
+            - name: SHIMMY_BASE_GGUF
+              value: "/models"
+          volumeMounts:
+          - name: models
+            mountPath: /models
           resources:
             requests:
               memory: "4Gi"
@@ -68,4 +75,10 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 12
+            failureThreshold: 18
+        volumes:
+        - name: models
+          emptyDir: {}
+          # To use PVC for persistent models, uncomment below and comment emptyDir:
+          # persistentVolumeClaim:
+          #   claimName: shimmy-models-pvc
