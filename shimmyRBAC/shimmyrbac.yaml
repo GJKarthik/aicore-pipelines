@@ -18,15 +18,10 @@ spec:
         autoscaling.knative.dev/metric: concurrency
         autoscaling.knative.dev/target: 1
         autoscaling.knative.dev/targetBurstCapacity: 0
-        sidecar.istio.io/inject: "true"
         sidecar.istio.io/rewriteAppHTTPProbers: "true"
         traffic.sidecar.istio.io/excludeInboundPorts: "8080"
-        proxy.istio.io/config: |
-          holdApplicationUntilProxyStarts: true
-        serving.kserve.io/enable-prometheus-scraping: "true"
       labels: |
         ai.sap.com/resourcePlan: infer.s
-        sidecar.istio.io/inject: "true"
     spec: |
       predictor:
         imagePullSecrets:
@@ -39,7 +34,6 @@ spec:
           ports:
           - containerPort: 8080
             protocol: TCP
-            name: http1
           env:
           - name: SHIMMY_PORT
             value: "8080"
@@ -56,22 +50,18 @@ spec:
               memory: "2Gi"
               cpu: "1000m"
           livenessProbe:
-            httpGet:
-              path: /v1/models
+            tcpSocket:
               port: 8080
-              scheme: HTTP
-            initialDelaySeconds: 15
-            periodSeconds: 15
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /v1/models
-              port: 8080
-              scheme: HTTP
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
             failureThreshold: 3
         volumes:
         - name: models
