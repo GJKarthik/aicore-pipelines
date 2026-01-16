@@ -6,9 +6,9 @@ metadata:
     scenarios.ai.sap.com/description: "Lightweight Shimmy inference server with GPU support - models loaded at runtime"
     scenarios.ai.sap.com/name: "shimmy-lightweight"
     executables.ai.sap.com/description: "Shimmy inference service without baked models - fast deployment with GPU"
-    executables.ai.sap.com/name: "shimmy-inference"
+    executables.ai.sap.com/name: "shimmy-lightweight"
   labels:
-    scenarios.ai.sap.com/id: "shimmy-inference"
+    scenarios.ai.sap.com/id: "shimmy-lightweight"
     ai.sap.com/version: "2.0.0"
 spec:
   template:
