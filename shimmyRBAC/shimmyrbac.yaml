@@ -18,6 +18,7 @@ spec:
         autoscaling.knative.dev/metric: concurrency
         autoscaling.knative.dev/target: 1
         autoscaling.knative.dev/targetBurstCapacity: 0
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
       labels: |
         ai.sap.com/resourcePlan: infer.s
     spec: |
