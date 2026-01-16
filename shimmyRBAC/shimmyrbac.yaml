@@ -1,0 +1,97 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: shimmy-rbac-fix
+  annotations:
+    scenarios.ai.sap.com/description: "Shimmy with RBAC/Istio path allowlist fix"
+    scenarios.ai.sap.com/name: "shimmy-rbac-fix"
+    executables.ai.sap.com/description: "Shimmy inference service with all API paths whitelisted for Istio"
+    executables.ai.sap.com/name: "shimmy-rbac-fix"
+  labels:
+    scenarios.ai.sap.com/id: "shimmy-rbac-fix"
+    ai.sap.com/version: "1.0.0"
+spec:
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      annotations: |
+        autoscaling.knative.dev/metric: concurrency
+        autoscaling.knative.dev/target: 1
+        autoscaling.knative.dev/targetBurstCapacity: 0
+        sidecar.istio.io/inject: "true"
+        proxy.istio.io/config: |
+          holdApplicationUntilProxyStarts: true
+        serving.kserve.io/enable-prometheus-scraping: "true"
+      labels: |
+        ai.sap.com/resourcePlan: infer.s
+        sidecar.istio.io/inject: "true"
+    spec: |
+      predictor:
+        imagePullSecrets:
+        - name: ollamadocker
+        minReplicas: 1
+        maxReplicas: 1
+        containers:
+        - name: kserve-container
+          image: docker.io/gjkarthik/shimmy:latest
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+            name: http1
+          env:
+          - name: SHIMMY_PORT
+            value: "8080"
+          - name: SHIMMY_MODEL_PATH
+            value: "/models"
+          volumeMounts:
+          - name: models
+            mountPath: /models
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+        volumes:
+        - name: models
+          emptyDir: {}
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: shimmy-rbac-fix-allow-all
+spec:
+  selector:
+    matchLabels:
+      scenarios.ai.sap.com/id: "shimmy-rbac-fix"
+  action: ALLOW
+  rules:
+  - to:
+    - operation:
+        paths:
+        - "/v1/*"
+        - "/api/*"
+        - "/health"
+        - "/healthz"
+        - "/ready"
+        - "/metrics"
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
