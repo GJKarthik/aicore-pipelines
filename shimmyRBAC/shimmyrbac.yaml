@@ -1,15 +1,15 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
 metadata:
-  name: shimmy-rbac-fix
+  name: shimmy-lightweight
   annotations:
-    scenarios.ai.sap.com/description: "Shimmy with Istio bypass - no RBAC enforcement"
-    scenarios.ai.sap.com/name: "shimmy-rbac-fix"
-    executables.ai.sap.com/description: "Shimmy inference service with Istio port exclusion to bypass RBAC"
-    executables.ai.sap.com/name: "shimmy-rbac-fix"
+    scenarios.ai.sap.com/description: "Simple Shimmy inference server - binary only, no model baking"
+    scenarios.ai.sap.com/name: "shimmy-lightweight"
+    executables.ai.sap.com/description: "Direct Shimmy binary without proxy wrapper - minimal deployment"
+    executables.ai.sap.com/name: "shimmy-lightweight"
   labels:
-    scenarios.ai.sap.com/id: "shimmy-rbac-fix"
-    ai.sap.com/version: "1.0.1"
+    scenarios.ai.sap.com/id: "shimmy-lightweight"
+    ai.sap.com/version: "1.0.0"
 spec:
   template:
     apiVersion: "serving.kserve.io/v1beta1"
