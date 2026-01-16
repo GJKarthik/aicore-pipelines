@@ -19,7 +19,6 @@ spec:
         autoscaling.knative.dev/target: 1
         autoscaling.knative.dev/targetBurstCapacity: 0
         sidecar.istio.io/rewriteAppHTTPProbers: true
-        traffic.sidecar.istio.io/excludeInboundPorts: 8080
       labels: |
         ai.sap.com/resourcePlan: infer.s
     spec: |
