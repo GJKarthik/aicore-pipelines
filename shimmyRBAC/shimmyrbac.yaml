@@ -1,14 +1,14 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
 metadata:
-  name: shimmy-rbac
+  name: shimmy-lightweight
   annotations:
     scenarios.ai.sap.com/description: "Simple Shimmy inference server - binary only, no model baking"
-    scenarios.ai.sap.com/name: "shimmy-rbac"
+    scenarios.ai.sap.com/name: "shimmy-lightweight"
     executables.ai.sap.com/description: "Direct Shimmy binary without proxy wrapper - minimal deployment"
-    executables.ai.sap.com/name: "shimmy-rbac"
+    executables.ai.sap.com/name: "shimmy-lightweight"
   labels:
-    scenarios.ai.sap.com/id: "shimmy-rbac"
+    scenarios.ai.sap.com/id: "shimmy-lightweight"
     ai.sap.com/version: "1.0.0"
 spec:
   template:
