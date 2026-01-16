@@ -23,12 +23,12 @@ spec:
     spec: |
       predictor:
         imagePullSecrets:
-          - name: ollamadocker
+        - name: ollamadocker
         minReplicas: 1
         maxReplicas: 1
         containers:
-          - name: kserve-container
-            image: docker.io/gjkarthik/shimmy:latest
+        - name: kserve-container
+          image: docker.io/gjkarthik/shimmy:latest
             ports:
-              - containerPort: 8080
-                protocol: TCP
+            - containerPort: 8080
+              protocol: TCP
