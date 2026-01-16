@@ -3,13 +3,13 @@ kind: ServingTemplate
 metadata:
   name: shimmy-rbac-fix
   annotations:
-    scenarios.ai.sap.com/description: "Shimmy with RBAC/Istio path allowlist fix"
+    scenarios.ai.sap.com/description: "Shimmy with Istio bypass - no RBAC enforcement"
     scenarios.ai.sap.com/name: "shimmy-rbac-fix"
-    executables.ai.sap.com/description: "Shimmy inference service with all API paths whitelisted for Istio"
+    executables.ai.sap.com/description: "Shimmy inference service with Istio port exclusion to bypass RBAC"
     executables.ai.sap.com/name: "shimmy-rbac-fix"
   labels:
     scenarios.ai.sap.com/id: "shimmy-rbac-fix"
-    ai.sap.com/version: "1.0.0"
+    ai.sap.com/version: "1.0.1"
 spec:
   template:
     apiVersion: "serving.kserve.io/v1beta1"
@@ -19,6 +19,8 @@ spec:
         autoscaling.knative.dev/target: 1
         autoscaling.knative.dev/targetBurstCapacity: 0
         sidecar.istio.io/inject: "true"
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+        traffic.sidecar.istio.io/excludeInboundPorts: "8080"
         proxy.istio.io/config: |
           holdApplicationUntilProxyStarts: true
         serving.kserve.io/enable-prometheus-scraping: "true"
@@ -74,24 +76,3 @@ spec:
         volumes:
         - name: models
           emptyDir: {}
----
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
-metadata:
-  name: shimmy-rbac-fix-allow-all
-spec:
-  selector:
-    matchLabels:
-      scenarios.ai.sap.com/id: "shimmy-rbac-fix"
-  action: ALLOW
-  rules:
-  - to:
-    - operation:
-        paths:
-        - "/v1/*"
-        - "/api/*"
-        - "/health"
-        - "/healthz"
-        - "/ready"
-        - "/metrics"
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
