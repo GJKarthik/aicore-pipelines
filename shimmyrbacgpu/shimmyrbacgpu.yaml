@@ -1,0 +1,46 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: shimmy-gpu-accelerated
+  annotations:
+    scenarios.ai.sap.com/description: "GPU-Accelerated Shimmy with T4 support - 10x faster inference"
+    scenarios.ai.sap.com/name: "shimmy-gpu"
+    executables.ai.sap.com/description: "Shimmy inference service with NVIDIA T4 GPU acceleration"
+    executables.ai.sap.com/name: "shimmy-gpu"
+  labels:
+    scenarios.ai.sap.com/id: "shimmy-gpu"
+    ai.sap.com/version: "2.7"
+spec:
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      annotations: |
+        autoscaling.knative.dev/metric: concurrency
+        autoscaling.knative.dev/target: 1
+        autoscaling.knative.dev/targetBurstCapacity: 0
+      labels: |
+        ai.sap.com/resourcePlan: infer.s
+    spec: |
+      predictor:
+        imagePullSecrets:
+        - name: ollamadocker
+        minReplicas: 1
+        maxReplicas: 1
+        containers:
+        - name: kserve-container
+          image: docker.io/gjkarthik/shimmy:v2.7-gpu
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+            limits:
+              nvidia.com/gpu: "1"
+            requests:
+              nvidia.com/gpu: "1"
+          env:
+          - name: SHIMMY_PORT
+            value: "8081"
+          - name: SHIMMY_MODEL_PATH
+            value: "/models"
+          - name: SHIMMY_GPU_BACKEND
+            value: "cuda"
