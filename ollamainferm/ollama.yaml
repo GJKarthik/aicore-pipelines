@@ -3,9 +3,9 @@ kind: ServingTemplate
 metadata:
   name: ollamainferm
   annotations:
-    scenarios.ai.sap.com/description: "Run a ollama server on SAP AI Core"
+    scenarios.ai.sap.com/description: "Run a ollama server on SAP AI Core with 70K context"
     scenarios.ai.sap.com/name: "ollamainferm"
-    executables.ai.sap.com/description: "ollama service"
+    executables.ai.sap.com/description: "ollama service with extended context window"
     executables.ai.sap.com/name: "ollamainferm"
   labels:
     scenarios.ai.sap.com/id: "ollamainferm"
@@ -32,3 +32,19 @@ spec:
           ports:
             - containerPort: 8080
               protocol: TCP
+          env:
+            - name: OLLAMA_NUM_CTX
+              value: "70000"
+            - name: OLLAMA_MAX_LOADED_MODELS
+              value: "1"
+            - name: OLLAMA_NUM_PARALLEL
+              value: "1"
+          resources:
+            requests:
+              memory: "32Gi"
+              cpu: "8"
+              nvidia.com/gpu: "1"
+            limits:
+              memory: "48Gi"
+              cpu: "12"
+              nvidia.com/gpu: "1"
