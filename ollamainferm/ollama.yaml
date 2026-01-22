@@ -9,7 +9,7 @@ metadata:
     executables.ai.sap.com/name: "ollamainferm"
   labels:
     scenarios.ai.sap.com/id: "ollamainferm"
-    ai.sap.com/version: "0.0.1"
+    ai.sap.com/version: "0.0.2"
 spec:
   template:
     apiVersion: "serving.kserve.io/v1beta1"
@@ -33,7 +33,7 @@ spec:
             - containerPort: 8080
               protocol: TCP
           env:
-            - name: OLLAMA_NUM_CTX
+            - name: OLLAMA_CONTEXT_LENGTH
               value: "70000"
             - name: OLLAMA_MAX_LOADED_MODELS
               value: "1"
