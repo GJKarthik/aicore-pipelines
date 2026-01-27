@@ -14,7 +14,7 @@ spec:
   inputs:
     parameters:
       - name: modelName # placeholder name
-        default: "dphn/Dolphin3.0-Llama3.1-8B" 
+        default: "NeoChen1024/Dolphin3.0-Llama3.1-8B-FP8_DYNAMIC" 
         type: string # required for every parameters
         description: "--model: Name or path of the huggingface model to use. https://docs.vllm.ai/en/latest/models/supported_models.html/ for supported models. The same model name is used with SAP Generative AI Hub SDK"
       - name: dataType # Data Type
