@@ -1,51 +1,50 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
 metadata:
-  name: vllm-local-model
+  name: vllm-dolphin31-8b
   annotations:
-    scenarios.ai.sap.com/description: "Run a vLLM server with a baked-in local model"
-    scenarios.ai.sap.com/name: "vllm-local-model"
-    executables.ai.sap.com/description: "Run a vLLM service for a local model"
-    executables.ai.sap.com/name: "vllm-local-model"
+    scenarios.ai.sap.com/description: "Run a vLLM server to consume deepseek model on SAP AI Core"
+    scenarios.ai.sap.com/name: "vllm-dolphin31-8b"
+    executables.ai.sap.com/description: "Run a vLLM server to consume deepseek model on SAP AI Core"
+    executables.ai.sap.com/name: "vllm-dolphin31-8b"
   labels:
-    scenarios.ai.sap.com/id: "vllm"
+    scenarios.ai.sap.com/id: "vllm-dolphin31-8b"
     ai.sap.com/version: "0.0.1"
 spec:
   inputs:
     parameters:
-      # --- MODIFIED PARAMETER for local model path ---
-      - name: modelName 
-        # Set default to the absolute path of the model directory *inside your Docker image*.
-        # E.g., if your model is in /gemma-2b-it/ in the image, use that path.
-        default: "/app/model" 
-        type: string 
-        description: "The absolute file path to the model directory baked into the Docker image."
-      # --- REQUIRED PARAMETER for GPU provisioning ---
-      - name: resourcePlan
-        default: "infer.m" # infer.m is a common GPU resource plan
-        type: string 
-        description: "The resource plan to use, e.g., 'infer.m' or 'infer.l' for GPU instances."
-      # --- Existing vLLM Parameters ---
-      - name: dataType
+      - name: modelName # placeholder name
+        default: "dphn/Dolphin3.0-Llama3.1-8B-GGUF:Q5_K_M" 
+        type: string # required for every parameters
+        description: "--model: Name or path of the huggingface model to use. https://docs.vllm.ai/en/latest/models/supported_models.html/ for supported models. The same model name is used with SAP Generative AI Hub SDK"
+      - name: dataType # Data Type
         default: "half" 
-        type: string 
-        description: "--dtype: Data type for model weights and activations."
-      - name: gpuMemoryUtilization
+        type: string # required for every parameters
+        description: "--dtype: Data type for model weights and activations. https://docs.vllm.ai/en/latest/models/engine_args.html"
+      - name: gpuMemoryUtilization # GPU Memory Utilization
         default: "0.9" 
-        type: string 
-        description: "The fraction (0~1) of GPU memory to be used by the model."
-      - name: maxTokenLen
-        default: "4096" 
-        type: string
-        description: "Maximum sequence length."
-      - name: maxNumBatchedTokens
-        default: "256000" 
-        type: string
-        description: "Maximum number of tokens per batch."
-      - name: maxNumSeqs
-        default: "256" 
-        type: string
-        description: "Maximum number of sequences per batch."
+        type: string # required for every parameters
+        description: "The fraction(0~1) of GPU memory to be used for the model executor. https://docs.vllm.ai/en/latest/models/engine_args.html"
+      - name: maxTokenLen # placeholder name
+        default: "2048" 
+        type: string # required for every parameters
+        description: "--max-model-len: Model context length. https://docs.vllm.ai/en/latest/models/engine_args.html"
+      - name: maxNumBatchedTokens # placeholder name
+        default: "30720" 
+        type: string # required for every parameters
+        description: "--max-num-batched-tokens: Maximum number of batched tokens per iteration. https://docs.vllm.ai/en/latest/models/engine_args.html"
+      - name: maxNumSeqs # placeholder name
+        default: "2048" 
+        type: string # required for every parameters
+        description: "--max-num-seqs: Maximum number of sequences per iteration. https://docs.vllm.ai/en/latest/models/engine_args.html"
+      - name: quantization # placeholder name
+        default: "None" 
+        type: string # required for every parameters
+        description: "--quantization: Method used to quantize the weights. https://docs.vllm.ai/en/latest/models/engine_args.html" 
+      - name: resourcePlan
+        type: "string"
+        default: "infer.l"
+        description: "Resource Plan of SAP AI Core. Supported: infer.s, infer.m, infer.l, train.l"
   template:
     apiVersion: "serving.kserve.io/v1beta1"
     metadata:
@@ -54,7 +53,7 @@ spec:
         autoscaling.knative.dev/target: 1
         autoscaling.knative.dev/targetBurstCapacity: 0
       labels: |
-        ai.sap.com/resourcePlan: "{{inputs.parameters.resourcePlan}}" # Ensure GPU Resource Plan is applied
+        ai.sap.com/resourcePlan: "{{inputs.parameters.resourcePlan}}"
     spec: |
       predictor:
         imagePullSecrets:
@@ -63,8 +62,7 @@ spec:
         maxReplicas: 1
         containers:
         - name: kserve-container
-          # --- MODIFIED: Use your custom image name ---
-          image: docker.io/gjkarthik/vllm-gemma-2-2b-it:aicore
+          image: docker.io/gjkarthik/vllm:latest
           ports:
             - containerPort: 8000
               protocol: TCP
@@ -73,10 +71,14 @@ spec:
             - >
               set -e && echo "-------------Starting vLLM OpenAI API Server--------------" 
               && python3 -m vllm.entrypoints.openai.api_server 
-              --model {{inputs.parameters.modelName}} # Model path is now the local path from above
+              --model {{inputs.parameters.modelName}}
               --dtype {{inputs.parameters.dataType}}
               --gpu-memory-utilization {{inputs.parameters.gpuMemoryUtilization}}
               --enforce-eager
               --max-model-len {{inputs.parameters.maxTokenLen}}
               --max-num-batched-tokens {{inputs.parameters.maxNumBatchedTokens}}
               --max-num-seqs {{inputs.parameters.maxNumSeqs}}
+              --quantization {{inputs.parameters.quantization}}
+          env:
+            - name: MODEL
+              value: "{{inputs.parameters.modelName}}"
