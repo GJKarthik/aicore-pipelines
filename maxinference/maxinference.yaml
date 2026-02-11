@@ -28,7 +28,7 @@ spec:
         autoscaling.knative.dev/scaleToZeroPodRetentionPeriod: "30m"
       labels: |
         ai.sap.com/resourcePlan: infer.l
-    spec:
+    spec: |
       predictor:
         imagePullSecrets:
           - name: ollamadocker
@@ -49,8 +49,6 @@ spec:
                 value: "/app/models"
               - name: STORAGE_URI
                 value: "{{inputs.artifacts.maxmodel}}"
-            
-            # Resource requirements for GPU inference
             resources:
               limits:
                 nvidia.com/gpu: "1"
@@ -60,8 +58,6 @@ spec:
                 nvidia.com/gpu: "1"
                 memory: "16Gi"
                 cpu: "4"
-            
-            # Liveness probe - checks if container is alive
             livenessProbe:
               httpGet:
                 path: /health
@@ -70,8 +66,6 @@ spec:
               periodSeconds: 30
               timeoutSeconds: 10
               failureThreshold: 5
-            
-            # Readiness probe - checks if container is ready to serve
             readinessProbe:
               httpGet:
                 path: /v1/models
@@ -80,8 +74,6 @@ spec:
               periodSeconds: 15
               timeoutSeconds: 10
               failureThreshold: 3
-            
-            # Startup probe - gives container time to start
             startupProbe:
               httpGet:
                 path: /health
