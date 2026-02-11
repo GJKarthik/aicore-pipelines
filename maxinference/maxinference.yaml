@@ -1,0 +1,92 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: max-inference-deepseek-coder
+  annotations:
+    scenarios.ai.sap.com/description: "MAX Inference Service for DeepSeek-Coder-V2-Lite-Instruct-AWQ"
+    scenarios.ai.sap.com/name: "max-deepseek-coder"
+    executables.ai.sap.com/description: "Modular MAX inference with DeepSeek Coder V2 Lite AWQ"
+    executables.ai.sap.com/name: "max-inference"
+    artifacts.ai.sap.com/maxmodel.kind: "model"
+  labels:
+    scenarios.ai.sap.com/id: "max-inference"
+    ai.sap.com/version: "1.0.0"
+
+spec:
+  inputs:
+    artifacts:
+      - name: maxmodel
+        description: "MAX inference model artifact"
+  
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      annotations: |
+        autoscaling.knative.dev/metric: concurrency
+        autoscaling.knative.dev/target: "1"
+        autoscaling.knative.dev/targetBurstCapacity: "0"
+        autoscaling.knative.dev/scaleToZeroPodRetentionPeriod: "30m"
+      labels: |
+        ai.sap.com/resourcePlan: infer.l
+    spec:
+      predictor:
+        imagePullSecrets:
+          - name: ollamadocker
+        minReplicas: 1
+        maxReplicas: 3
+        containers:
+          - name: kserve-container
+            image: "docker.io/gjkarthik/max:latest"
+            ports:
+              - containerPort: 8000
+                protocol: TCP
+            env:
+              - name: MODEL_PATH
+                value: "TechxGenus/DeepSeek-Coder-V2-Lite-Instruct-AWQ"
+              - name: MAX_PORT
+                value: "8000"
+              - name: MODEL_DIR
+                value: "/app/models"
+              - name: STORAGE_URI
+                value: "{{inputs.artifacts.maxmodel}}"
+            
+            # Resource requirements for GPU inference
+            resources:
+              limits:
+                nvidia.com/gpu: "1"
+                memory: "16Gi"
+                cpu: "4"
+              requests:
+                nvidia.com/gpu: "1"
+                memory: "16Gi"
+                cpu: "4"
+            
+            # Liveness probe - checks if container is alive
+            livenessProbe:
+              httpGet:
+                path: /health
+                port: 8000
+              initialDelaySeconds: 120
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 5
+            
+            # Readiness probe - checks if container is ready to serve
+            readinessProbe:
+              httpGet:
+                path: /v1/models
+                port: 8000
+              initialDelaySeconds: 120
+              periodSeconds: 15
+              timeoutSeconds: 10
+              failureThreshold: 3
+            
+            # Startup probe - gives container time to start
+            startupProbe:
+              httpGet:
+                path: /health
+                port: 8000
+              initialDelaySeconds: 60
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 10
