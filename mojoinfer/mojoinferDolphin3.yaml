@@ -1,0 +1,276 @@
+# SAP BTP AI Core Serving Template for nLocalModels
+# GPU-accelerated inference with Dolphin3.0-Llama3.1-8B GGUF model on T4
+#
+# Prerequisites:
+#   1. Docker image pushed to registry accessible by AI Core
+#   2. Docker registry secret created in AI Core (dockerhub-pull-secret)
+#   3. AI Core resource plan with T4 GPU (infer.s or infer.m)
+#   4. HANA Cloud secret created in AI Core (nlocalmodels-hana-secret)
+#
+# Create HANA Secret via AI Core API:
+#   curl -X POST "https://<ai-core-url>/v2/admin/secrets" \
+#     -H "Authorization: Bearer $AI_CORE_TOKEN" \
+#     -H "AI-Resource-Group: default" \
+#     -H "Content-Type: application/json" \
+#     -d '{
+#       "name": "nlocalmodels-hana-secret",
+#       "data": {
+#         "SAP_HANA_ODATA_URL": "<base64-encoded: e.g. https://xxx.hanacloud.ondemand.com>",
+#         "SAP_HANA_PORT": "<base64-encoded: e.g. 443>",
+#         "SAP_HANA_USER": "<base64-encoded: e.g. NLOCALMODELS_USER>",
+#         "SAP_HANA_PASSWORD": "<base64-encoded-password>",
+#         "SAP_HANA_SCHEMA": "<base64-encoded: e.g. NUCLEUS_AI>"
+#       }
+#     }'
+#
+# Deployment Steps:
+#   1. Register this serving template with AI Core
+#   2. Create HANA secret (see above)
+#   3. Create deployment configuration
+#   4. Deploy the serving instance
+#
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: nlocalmodels-dolphin-gpu
+  annotations:
+    scenarios.ai.sap.com/description: "nLocalModels Inference with Dolphin3.0-Llama3.1-8B on T4 GPU"
+    scenarios.ai.sap.com/name: "nlocalmodels-inference"
+    executables.ai.sap.com/description: "GGUF-based local model inference with paged attention and continuous batching"
+    executables.ai.sap.com/name: "nlocalmodels-serve"
+  labels:
+    scenarios.ai.sap.com/id: "nlocalmodels-inference"
+    ai.sap.com/version: "1.0.0"
+
+spec:
+  inputs:
+    parameters:
+      - name: model_name
+        type: string
+        default: "Dolphin3.0-Llama3.1-8B"
+        description: "Display name for the model"
+      - name: max_seq_len
+        type: string
+        default: "4096"
+        description: "Maximum sequence length for generation"
+      - name: max_batch_size
+        type: string
+        default: "64"
+        description: "Maximum batch size for continuous batching"
+  
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      annotations: |
+        autoscaling.knative.dev/metric: concurrency
+        autoscaling.knative.dev/target: "2"
+        autoscaling.knative.dev/targetBurstCapacity: "0"
+        autoscaling.knative.dev/scaleToZeroPodRetentionPeriod: "15m"
+      labels: |
+        ai.sap.com/resourcePlan: infer.s
+    spec: |
+      predictor:
+        imagePullSecrets:
+          - name: dockerhub-pull-secret
+        minReplicas: 1
+        maxReplicas: 2
+        
+        initContainers:
+          - name: model-downloader
+            image: "curlimages/curl:8.5.0"
+            command:
+              - /bin/sh
+              - -c
+              - |
+                set -e
+                echo "=============================================="
+                echo "  Downloading Dolphin3.0-Llama3.1-8B Q4_K_M"
+                echo "  Source: Hugging Face (dphn/Dolphin3.0-Llama3.1-8B-GGUF)"
+                echo "=============================================="
+                mkdir -p /models/vendor/layerModels
+                MODEL_URL="https://huggingface.co/dphn/Dolphin3.0-Llama3.1-8B-GGUF/resolve/main/Dolphin3.0-Llama3.1-8B-Q4_K_M.gguf"
+                MODEL_PATH="/models/vendor/layerModels/Dolphin3.0-Llama3.1-8B-Q4_K_M.gguf"
+                
+                echo "Downloading from: $MODEL_URL"
+                echo "Destination: $MODEL_PATH"
+                
+                curl -L --progress-bar -o "$MODEL_PATH" "$MODEL_URL"
+                
+                if [ -f "$MODEL_PATH" ]; then
+                  SIZE=$(stat -c%s "$MODEL_PATH" 2>/dev/null || stat -f%z "$MODEL_PATH")
+                  echo "Download complete: $MODEL_PATH ($SIZE bytes)"
+                else
+                  echo "ERROR: Download failed!"
+                  exit 1
+                fi
+                
+                echo "=============================================="
+                ls -lah /models/vendor/layerModels/
+            volumeMounts:
+              - name: model-storage
+                mountPath: /models
+            resources:
+              limits:
+                memory: "1Gi"
+                cpu: "1"
+              requests:
+                memory: "256Mi"
+                cpu: "200m"
+        
+        containers:
+          - name: kserve-container
+            image: "docker.io/plturrell/n-nucleus:nlocalmodels-latest"
+            ports:
+              - containerPort: 8007
+                protocol: TCP
+            
+            volumeMounts:
+              - name: model-storage
+                mountPath: /app/vendor
+                subPath: vendor
+                readOnly: true
+            
+            env:
+              # Model configuration
+              - name: MODEL_NAME
+                value: "{{inputs.parameters.model_name}}"
+              - name: LOCALMODEL_GGUF
+                value: "/app/vendor/layerModels/Dolphin3.0-Llama3.1-8B-Q4_K_M.gguf"
+              - name: MODEL_PATH
+                value: "/app/vendor/layerModels"
+              
+              # Serving engine configuration
+              - name: MAX_SEQ_LEN
+                value: "{{inputs.parameters.max_seq_len}}"
+              - name: MAX_BATCH_SIZE
+                value: "{{inputs.parameters.max_batch_size}}"
+              - name: MAX_PREFILL_TOKENS
+                value: "4096"
+              - name: PREFILL_CHUNK_SIZE
+                value: "512"
+              
+              # GPU configuration (T4 - 16GB VRAM)
+              - name: ENABLE_GPU
+                value: "true"
+              - name: KERNEL_GPU_BACKEND
+                value: "cuda"
+              - name: NUM_GPU_BLOCKS
+                value: "2048"
+              - name: BLOCK_SIZE
+                value: "16"
+              
+              # KV cache and memory (optimized for 8B model on T4)
+              - name: KV_CACHE_RAM_MB
+                value: "4096"
+              - name: TENSOR_HOT_MB
+                value: "6144"
+              - name: TENSOR_WARM_MB
+                value: "2048"
+              - name: MAX_RAM_MB
+                value: "14336"
+              
+              # Paged attention (optimized for T4)
+              - name: ENABLE_PAGED_ATTENTION
+                value: "true"
+              - name: ENABLE_CHUNKED_PREFILL
+                value: "true"
+              - name: ENABLE_KV_TIERING
+                value: "true"
+              - name: ENABLE_TENSOR_TIERING
+                value: "true"
+              
+              # Speculative decoding (disabled for now)
+              - name: ENABLE_SPECULATIVE
+                value: "false"
+              - name: NUM_DRAFT_TOKENS
+                value: "5"
+              
+              # Distributed mode
+              - name: ENABLE_DISTRIBUTED
+                value: "false"
+              
+              # Server port (AI Core uses 8007)
+              - name: NLOCALMODELS_PORT
+                value: "8007"
+              
+              # Logging
+              - name: LOG_LEVEL
+                value: "info"
+              
+              # SAP HANA Cloud Credentials (from AI Core secret)
+              # Source code reads: SAP_HANA_ODATA_URL, SAP_HANA_PORT, SAP_HANA_USER, SAP_HANA_PASSWORD, SAP_HANA_SCHEMA
+              - name: SAP_HANA_ODATA_URL
+                valueFrom:
+                  secretKeyRef:
+                    name: nlocalmodels-hana-secret
+                    key: SAP_HANA_ODATA_URL
+              - name: SAP_HANA_PORT
+                valueFrom:
+                  secretKeyRef:
+                    name: nlocalmodels-hana-secret
+                    key: SAP_HANA_PORT
+              - name: SAP_HANA_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: nlocalmodels-hana-secret
+                    key: SAP_HANA_USER
+              - name: SAP_HANA_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: nlocalmodels-hana-secret
+                    key: SAP_HANA_PASSWORD
+              - name: SAP_HANA_SCHEMA
+                valueFrom:
+                  secretKeyRef:
+                    name: nlocalmodels-hana-secret
+                    key: SAP_HANA_SCHEMA
+              # Optional HANA vector table config
+              - name: SAP_HANA_VECTOR_TABLE
+                value: "MODEL_EMBEDDINGS"
+              - name: SAP_HANA_VECTOR_DIMENSION
+                value: "768"
+              # Enable HANA integration
+              - name: NLOCALMODELS_ENABLE_HANA
+                value: "true"
+            
+            resources:
+              limits:
+                nvidia.com/gpu: "1"
+                memory: "16Gi"
+                cpu: "4"
+              requests:
+                nvidia.com/gpu: "1"
+                memory: "14Gi"
+                cpu: "2"
+            
+            livenessProbe:
+              httpGet:
+                path: /health/live
+                port: 8007
+              initialDelaySeconds: 120
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 5
+            
+            readinessProbe:
+              httpGet:
+                path: /health/ready
+                port: 8007
+              initialDelaySeconds: 120
+              periodSeconds: 15
+              timeoutSeconds: 10
+              failureThreshold: 3
+            
+            startupProbe:
+              httpGet:
+                path: /health/startup
+                port: 8007
+              initialDelaySeconds: 60
+              periodSeconds: 15
+              timeoutSeconds: 10
+              failureThreshold: 30
+        
+        volumes:
+          - name: model-storage
+            emptyDir:
+              sizeLimit: 8Gi
