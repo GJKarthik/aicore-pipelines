@@ -69,7 +69,7 @@ spec:
         maxReplicas: 2
         containers:
           - name: kserve-container
-            image: "docker.io/plturrell/n-nucleus:nlocalmodels-latest"
+            image: "docker.io/plturrell/sap-btp-images:ai-core-private-latest"
             ports:
               - containerPort: 8007
                 protocol: TCP
@@ -82,7 +82,7 @@ spec:
               - name: MODEL_PATH
                 value: "/mnt/models"
               - name: LOCALMODEL_GGUF
-                value: "/mnt/models/model.gguf"
+                value: "/mnt/models/Dolphin3.0-Llama3.1-8B-Q4_K_M.gguf"
               
               # Serving engine
               - name: MAX_SEQ_LEN
@@ -176,6 +176,11 @@ spec:
                 nvidia.com/gpu: "1"
                 memory: "14Gi"
                 cpu: "2"
+            
+            command: ["/app/ai-core-private-server"]
+            args: 
+              - "--port"
+              - "8007"
             
             livenessProbe:
               httpGet:
