@@ -1,0 +1,67 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: privatellm-tinyllama
+  annotations:
+    scenarios.ai.sap.com/description: "Pure Zig LLM inference with TinyLlama - Direct GGUF loading from S3"
+    scenarios.ai.sap.com/name: "privatellm"
+    executables.ai.sap.com/description: "OpenAI-compatible LLM gateway with built-in GGUF inference"
+    executables.ai.sap.com/name: "privatellm"
+  labels:
+    scenarios.ai.sap.com/id: "privatellm"
+    ai.sap.com/version: "1.0"
+spec:
+  inputs:
+    artifacts:
+      - name: tinyllamamodel
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      annotations: |
+        autoscaling.knative.dev/metric: concurrency
+        autoscaling.knative.dev/target: 1
+        autoscaling.knative.dev/targetBurstCapacity: 0
+      labels: |
+        ai.sap.com/resourcePlan: infer.s
+    spec: |
+      predictor:
+        imagePullSecrets:
+        - name: ollamadocker
+        minReplicas: 1
+        maxReplicas: 1
+        containers:
+        - name: kserve-container
+          image: docker.io/gjkarthik/ai-core-privatellm:v1.0-tinyllama
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+          resources:
+            limits:
+              nvidia.com/gpu: "1"
+              memory: "8Gi"
+              cpu: "4"
+            requests:
+              nvidia.com/gpu: "1"
+              memory: "4Gi"
+              cpu: "2"
+          env:
+          - name: PORT
+            value: "8080"
+          - name: MODEL_PATH
+            value: "/mnt/models"
+          - name: CUDA_VISIBLE_DEVICES
+            value: "0"
+          - name: NVIDIA_VISIBLE_DEVICES
+            value: "all"
+          volumeMounts:
+          - name: model-volume
+            mountPath: /mnt/models
+            readOnly: true
+        volumes:
+        - name: model-volume
+          persistentVolumeClaim:
+            claimName: "{{inputs.artifacts.tinyllamamodel}}"
