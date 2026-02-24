@@ -38,7 +38,7 @@ spec:
         type: string # required for every parameters
         description: "--max-num-seqs: Maximum number of sequences per iteration. https://docs.vllm.ai/en/latest/models/engine_args.html"
       - name: quantization # placeholder name
-        default: "awq" 
+        default: "compressed-tensors" 
         type: string # required for every parameters
         description: "--quantization: Method used to quantize the weights. https://docs.vllm.ai/en/latest/models/engine_args.html" 
       - name: resourcePlan
