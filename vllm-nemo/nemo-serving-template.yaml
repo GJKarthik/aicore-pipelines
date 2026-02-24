@@ -1,7 +1,7 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
 metadata:
-  name: nvidia_Llama-3.1-Nemotron-Nano-8B-v1-AWQ
+  name: nvidia_Llama-3.1-Nemotron-Nano
   annotations:
     scenarios.ai.sap.com/description: "Run a vLLM server to consume deepseek model on SAP AI Core"
     scenarios.ai.sap.com/name: "nvidia_Llama-3.1-Nemotron-Nano-8B-v1-AWQ"
