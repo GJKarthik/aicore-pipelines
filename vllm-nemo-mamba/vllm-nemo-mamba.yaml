@@ -80,6 +80,7 @@ spec:
               --max-num-seqs {{inputs.parameters.maxNumSeqs}}
               --quantization {{inputs.parameters.quantization}}
               --enable-chunked-prefill
+              --trust-remote-code
               --mamba-ssm-cache-dtype float32
           env:
             - name: MODEL
