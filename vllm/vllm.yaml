@@ -1,20 +1,20 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
 metadata:
-  name: vllm-dolphin31-8b
+  name: llama-3-8b-instruct-awq
   annotations:
     scenarios.ai.sap.com/description: "Run a vLLM server to consume deepseek model on SAP AI Core"
-    scenarios.ai.sap.com/name: "vllm-dolphin31-8b"
+    scenarios.ai.sap.com/name: "llama-3-8b-instruct-awq"
     executables.ai.sap.com/description: "Run a vLLM server to consume deepseek model on SAP AI Core"
-    executables.ai.sap.com/name: "vllm-dolphin31-8b"
+    executables.ai.sap.com/name: "llama-3-8b-instruct-awq"
   labels:
-    scenarios.ai.sap.com/id: "vllm-dolphin31-8b"
+    scenarios.ai.sap.com/id: "llama-3-8b-instruct-awq"
     ai.sap.com/version: "0.0.1"
 spec:
   inputs:
     parameters:
       - name: modelName # placeholder name
-        default: "NeoChen1024/Dolphin3.0-Llama3.1-8B-FP8_DYNAMIC" 
+        default: "casperhansen/llama-3-8b-instruct-awq" 
         type: string # required for every parameters
         description: "--model: Name or path of the huggingface model to use. https://docs.vllm.ai/en/latest/models/supported_models.html/ for supported models. The same model name is used with SAP Generative AI Hub SDK"
       - name: dataType # Data Type
@@ -30,15 +30,15 @@ spec:
         type: string # required for every parameters
         description: "--max-model-len: Model context length. https://docs.vllm.ai/en/latest/models/engine_args.html"
       - name: maxNumBatchedTokens # placeholder name
-        default: "30720" 
+        default: "4096" 
         type: string # required for every parameters
         description: "--max-num-batched-tokens: Maximum number of batched tokens per iteration. https://docs.vllm.ai/en/latest/models/engine_args.html"
       - name: maxNumSeqs # placeholder name
-        default: "2048" 
+        default: "128" 
         type: string # required for every parameters
         description: "--max-num-seqs: Maximum number of sequences per iteration. https://docs.vllm.ai/en/latest/models/engine_args.html"
       - name: quantization # placeholder name
-        default: "None" 
+        default: "awq" 
         type: string # required for every parameters
         description: "--quantization: Method used to quantize the weights. https://docs.vllm.ai/en/latest/models/engine_args.html" 
       - name: resourcePlan
