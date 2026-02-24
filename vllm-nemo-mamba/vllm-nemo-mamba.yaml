@@ -22,7 +22,7 @@ spec:
         type: string # required for every parameters
         description: "--dtype: Data type for model weights and activations. https://docs.vllm.ai/en/latest/models/engine_args.html"
       - name: gpuMemoryUtilization # GPU Memory Utilization
-        default: "0.9" 
+        default: "0.85" 
         type: string # required for every parameters
         description: "The fraction(0~1) of GPU memory to be used for the model executor. https://docs.vllm.ai/en/latest/models/engine_args.html"
       - name: maxTokenLen # placeholder name
@@ -30,11 +30,11 @@ spec:
         type: string # required for every parameters
         description: "--max-model-len: Model context length. https://docs.vllm.ai/en/latest/models/engine_args.html"
       - name: maxNumBatchedTokens # placeholder name
-        default: "2048" 
+        default: "512" 
         type: string # required for every parameters
         description: "--max-num-batched-tokens: Maximum number of batched tokens per iteration. https://docs.vllm.ai/en/latest/models/engine_args.html"
       - name: maxNumSeqs # placeholder name
-        default: "128" 
+        default: "16" 
         type: string # required for every parameters
         description: "--max-num-seqs: Maximum number of sequences per iteration. https://docs.vllm.ai/en/latest/models/engine_args.html"
       - name: quantization # placeholder name
