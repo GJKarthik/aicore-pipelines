@@ -32,7 +32,7 @@ spec:
         default: "16" 
         type: string
       - name: quantization
-        default: "awq" 
+        default: "compressed-tensors" 
         type: string
       - name: resourcePlan
         type: "string"
