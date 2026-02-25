@@ -64,7 +64,7 @@ spec:
             - name: MODEL
               value: "{{inputs.parameters.modelName}}"
             - name: VLLM_ATTENTION_BACKEND
-              value: "XFORMERS"
+              value: "TORCH_SDPA"
             - name: VLLM_NO_DEPRECATION_WARNING
               value: "1"
           command: ["/bin/sh", "-c"]
