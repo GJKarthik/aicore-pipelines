@@ -59,8 +59,6 @@ spec:
             - containerPort: 8000
               protocol: TCP
           env:
-            - name: VLLM_ATTENTION_BACKEND
-              value: "TORCH_SDPA"
             - name: VLLM_NO_DEPRECATION_WARNING
               value: "1"
           command: ["/bin/sh", "-c"]
