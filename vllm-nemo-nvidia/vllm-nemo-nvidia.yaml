@@ -1,0 +1,88 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: nvidia-llama-3-1-nemotron-nano-8b-v1-awq
+  annotations:
+    scenarios.ai.sap.com/description: "vLLM server for Llama 3.1 Nemotron Nano 8B AWQ on T4"
+    scenarios.ai.sap.com/name: "nvidia-llama-3-1-nemotron-nano-8b-v1-awq"
+    executables.ai.sap.com/description: "Run vLLM with CUDA Graphs and Chunked Prefill enabled"
+    executables.ai.sap.com/name: "nvidia-llama-3-1-nemotron-nano-8b-v1-awq"
+  labels:
+    scenarios.ai.sap.com/id: "nvidia-llama-3-1-nemotron-nano-8b-v1-awq"
+    ai.sap.com/version: "0.0.1"
+spec:
+  inputs:
+    parameters:
+      - name: modelName
+        default: "ArtusDev/nvidia_Llama-3.1-Nemotron-Nano-8B-v1-AWQ" 
+        type: string
+        description: "HuggingFace model path"
+      - name: dataType
+        default: "half" 
+        type: string
+        description: "Data type (half is optimal for T4)"
+      - name: gpuMemoryUtilization
+        default: "0.8" 
+        type: string
+        description: "Reduced to 0.8 to allow room for CUDA Graph capture overhead"
+      - name: maxTokenLen
+        default: "4096" 
+        type: string
+        description: "Context length"
+      - name: maxNumBatchedTokens
+        default: "512" 
+        type: string
+        description: "Chunk size for prefill; 512 is stable for T4 memory"
+      - name: maxNumSeqs
+        default: "16" 
+        type: string
+        description: "Reduced concurrency for VRAM safety"
+      - name: quantization
+        default: "awq" 
+        type: string
+        description: "Quantization method for ArtusDev model"
+      - name: resourcePlan
+        type: "string"
+        default: "infer.l"
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      annotations:
+        autoscaling.knative.dev/metric: concurrency
+        autoscaling.knative.dev/target: 1
+        autoscaling.knative.dev/targetBurstCapacity: 0
+      labels:
+        ai.sap.com/resourcePlan: "{{inputs.parameters.resourcePlan}}"
+    spec: |
+      predictor:
+        imagePullSecrets:
+        - name: ollamadocker
+        minReplicas: 1
+        maxReplicas: 1
+        containers:
+        - name: kserve-container
+          image: docker.io/gjkarthik/vllm-nvidia:25.12.post1
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          env:
+            - name: MODEL
+              value: "{{inputs.parameters.modelName}}"
+            - name: VLLM_ATTENTION_BACKEND
+              value: "XFORMERS"
+            - name: VLLM_NO_DEPRECATION_WARNING
+              value: "1"
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              set -e && echo "-------------Starting vLLM OpenAI API Server--------------" 
+              && python3 -m vllm.entrypoints.openai.api_server 
+              --model {{inputs.parameters.modelName}}
+              --dtype {{inputs.parameters.dataType}}
+              --gpu-memory-utilization {{inputs.parameters.gpuMemoryUtilization}}
+              --max-model-len {{inputs.parameters.maxTokenLen}}
+              --max-num-batched-tokens {{inputs.parameters.maxNumBatchedTokens}}
+              --max-num-seqs {{inputs.parameters.maxNumSeqs}}
+              --quantization {{inputs.parameters.quantization}}
+              --enable-chunked-prefill
+              --trust-remote-code
