@@ -1,14 +1,14 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
 metadata:
-  name: nvidia-llama-3-1-nemotron-nano-8b-v1-awq
+  name: nvidia-llama-3-1-nemotron-nano-8b-v1-awq-nvdia
   annotations:
     scenarios.ai.sap.com/description: "vLLM server for Llama 3.1 Nemotron Nano 8B AWQ on T4"
-    scenarios.ai.sap.com/name: "nvidia-llama-3-1-nemotron-nano-8b-v1-awq"
+    scenarios.ai.sap.com/name: "nvidia-llama-3-1-nemotron-nano-8b-v1-awq-nvidia"
     executables.ai.sap.com/description: "Run vLLM with CUDA Graphs and Chunked Prefill enabled"
-    executables.ai.sap.com/name: "nvidia-llama-3-1-nemotron-nano-8b-v1-awq"
+    executables.ai.sap.com/name: "nvidia-llama-3-1-nemotron-nano-8b-v1-awq-nvidia"
   labels:
-    scenarios.ai.sap.com/id: "nvidia-llama-3-1-nemotron-nano-8b-v1-awq"
+    scenarios.ai.sap.com/id: "nvidia-llama-3-1-nemotron-nano-8b-v1-awq-nvidia"
     ai.sap.com/version: "0.0.1"
 spec:
   inputs:
