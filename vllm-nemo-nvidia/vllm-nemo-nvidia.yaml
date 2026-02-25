@@ -80,4 +80,4 @@ spec:
               --max-num-seqs {{inputs.parameters.maxNumSeqs}}
               --quantization {{inputs.parameters.quantization}}
               --enable-chunked-prefill
-              --trust-remote-code
+              --enforce-eager
