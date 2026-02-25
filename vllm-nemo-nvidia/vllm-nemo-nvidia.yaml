@@ -1,26 +1,26 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
 metadata:
-  name: nvidia-llama-3-1-nemotron-nano-8b-v1-awq-nvidia
+  name: nvidia-llama-3-1-8b-awq-nvidia
   annotations:
-    scenarios.ai.sap.com/description: "Run vLLM server on SAP AI Core"
-    scenarios.ai.sap.com/name: "nvidia-llama-3-1-nemotron-nano-8b-v1-awq-nvidia"
-    executables.ai.sap.com/description: "Llama 3.1 Nemotron Nano 8B AWQ"
-    executables.ai.sap.com/name: "nvidia-llama-3-1-nemotron-nano-8b-v1-awq-nvidia"
+    scenarios.ai.sap.com/description: "Run vLLM server with official Meta Llama 3.1 8B AWQ on T4"
+    scenarios.ai.sap.com/name: "nvidia-llama-3-1-8b-awq-nvidia"
+    executables.ai.sap.com/description: "Llama 3.1 8B Instruct AWQ"
+    executables.ai.sap.com/name: "nvidia-llama-3-1-8b-awq-nvidia"
   labels:
-    scenarios.ai.sap.com/id: "nvidia-llama-3-1-nemotron-nano-8b-v1-awq-nvidia"
+    scenarios.ai.sap.com/id: "nvidia-llama-3-1-8b-awq-nvidia"
     ai.sap.com/version: "0.0.1"
 spec:
   inputs:
     parameters:
       - name: modelName
-        default: "ArtusDev/nvidia_Llama-3.1-Nemotron-Nano-8B-v1-AWQ" 
+        default: "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4" 
         type: string
       - name: dataType
         default: "half" 
         type: string
       - name: gpuMemoryUtilization
-        default: "0.8" 
+        default: "0.85" # Slight reduction to leave room for T4's small VRAM
         type: string
       - name: maxTokenLen
         default: "4096" 
@@ -32,7 +32,7 @@ spec:
         default: "16" 
         type: string
       - name: quantization
-        default: "compressed-tensors" 
+        default: "awq" # Changed from compressed-tensors to awq
         type: string
       - name: resourcePlan
         type: "string"
@@ -40,12 +40,10 @@ spec:
   template:
     apiVersion: "serving.kserve.io/v1beta1"
     metadata:
-      # ADDED THE PIPE '|' HERE
       annotations: |
         autoscaling.knative.dev/metric: concurrency
         autoscaling.knative.dev/target: 1
         autoscaling.knative.dev/targetBurstCapacity: 0
-      # ADDED THE PIPE '|' HERE
       labels: |
         ai.sap.com/resourcePlan: "{{inputs.parameters.resourcePlan}}"
     spec: |
@@ -61,8 +59,6 @@ spec:
             - containerPort: 8000
               protocol: TCP
           env:
-            - name: MODEL
-              value: "{{inputs.parameters.modelName}}"
             - name: VLLM_ATTENTION_BACKEND
               value: "TORCH_SDPA"
             - name: VLLM_NO_DEPRECATION_WARNING
@@ -80,4 +76,3 @@ spec:
               --max-num-seqs {{inputs.parameters.maxNumSeqs}}
               --quantization {{inputs.parameters.quantization}}
               --enable-chunked-prefill
-              --enforce-eager
