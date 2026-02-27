@@ -30,7 +30,7 @@ spec:
         default: "awq"
       - name: resourcePlan
         type: "string"
-        default: "infer.m"
+        default: "infer.s"
   template:
     apiVersion: "serving.kserve.io/v1beta1"
     metadata:
