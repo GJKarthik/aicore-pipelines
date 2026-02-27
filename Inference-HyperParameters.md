@@ -30,3 +30,5 @@ I've categorized features into core techniques, with notes on support (Yes/No/Pa
 - **Hyperparameter Overlaps**: Both share similar serving args (e.g., via OpenAI API compat); SGLang adds tuning for Radix (e.g., tree depth). Use tools like PyTorch Profiler for optimization.
 - **Missing/Experimental**: Multi-Latent Attention isn't core to either but can be approximated via quantization. Add-ons like speculative without drafts are supported but require small models.
 - **Recommendation**: For Karthik in Singapore (noting the time: Feb 27, 2026, 10:32 AM SGT), if your workload involves conversational AI, choose SGLang. For batch-heavy tasks, vLLM is more straightforward. Test with `bench_serve.py` on your hardware.
+
+- --speculative-config '{"method": "ngram", "num_speculative_tokens": 5, "prompt_lookup_max": 4}'
