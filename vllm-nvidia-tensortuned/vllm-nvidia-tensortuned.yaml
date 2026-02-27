@@ -17,35 +17,29 @@ spec:
         default: "ArtusDev/nvidia_Llama-3.1-Nemotron-Nano-8B-v1-AWQ" 
         type: string
       - name: dataType
-        default: "half" # MUST be half for T4 Tensor Cores
-        type: string
+        default: "half"
       - name: gpuMemoryUtilization
-        default: "0.95" # Maximized for larger KV Cache
-        type: string
+        default: "0.95"
       - name: maxTokenLen
-        default: "4096" # Reduced from 8k to allow for much larger Batch Sizes
-        type: string
+        default: "4096"
       - name: maxNumBatchedTokens
-        default: "8192" # Increased to saturate Tensor Cores
-        type: string
+        default: "8192"
       - name: maxNumSeqs
-        default: "256" # Increased to allow higher concurrency (TPS)
-        type: string
+        default: "256"
       - name: quantization
-        default: "awq" # Specifically triggers T4-optimized AWQ kernels
-        type: string
+        default: "awq"
       - name: resourcePlan
         type: "string"
         default: "infer.l"
   template:
     apiVersion: "serving.kserve.io/v1beta1"
     metadata:
-      annotations:
-        autoscaling.knative.dev/metric: concurrency
-        autoscaling.knative.dev/target: 1
-      labels:
+      annotations: |
+        autoscaling.knative.dev/metric: "concurrency"
+        autoscaling.knative.dev/target: "1"
+      labels: |
         ai.sap.com/resourcePlan: "{{inputs.parameters.resourcePlan}}"
-    spec:
+    spec: |
       predictor:
         imagePullSecrets:
         - name: ollamadocker
@@ -60,8 +54,8 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - >
-              set -e && echo "-------------Starting Optimized vLLM Server--------------" 
-              && python3 -m vllm.entrypoints.openai.api_server 
+              set -e && 
+              python3 -m vllm.entrypoints.openai.api_server 
               --model {{inputs.parameters.modelName}}
               --dtype {{inputs.parameters.dataType}}
               --quantization {{inputs.parameters.quantization}}
@@ -70,7 +64,6 @@ spec:
               --max-num-batched-tokens {{inputs.parameters.maxNumBatchedTokens}}
               --max-num-seqs {{inputs.parameters.maxNumSeqs}}
               --enable-prefix-caching
-              --disable-log-requests
               --trust-remote-code
           env:
             - name: MODEL
