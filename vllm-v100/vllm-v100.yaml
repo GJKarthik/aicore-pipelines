@@ -1,0 +1,69 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: nvidia-mistral-v100-optimized
+  annotations:
+    scenarios.ai.sap.com/description: "vLLM v100 Optimized - Tensor Core Saturated"
+    scenarios.ai.sap.com/name: "nvidia-mistral-v100-optimized"
+    executables.ai.sap.com/description: "Maximized TPS for Mistral 7B AWQ on v100"
+    executables.ai.sap.com/name: "nvidia-mistral-v100-optimized"
+  labels:
+    scenarios.ai.sap.com/id: "nvidia-mistral-v100-optimized"
+    ai.sap.com/version: "1.0.0"
+spec:
+  inputs:
+    parameters:
+      - name: modelName
+        default: "solidrust/Mistral-7B-Instruct-v0.3-AWQ" 
+        type: string
+      - name: dataType
+        default: "half"
+      - name: gpuMemoryUtilization
+        default: "0.80"
+      - name: maxTokenLen
+        default: "4096"
+      - name: maxNumBatchedTokens
+        default: "8192"
+      - name: maxNumSeqs
+        default: "256"
+      - name: quantization
+        default: "awq_marlin"
+      - name: resourcePlan
+        type: "string"
+        default: "train.l"
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      annotations: |
+        autoscaling.knative.dev/metric: "concurrency"
+        autoscaling.knative.dev/target: "1"
+      labels: |
+        ai.sap.com/resourcePlan: "{{inputs.parameters.resourcePlan}}"
+    spec: |
+      predictor:
+        imagePullSecrets:
+        - name: ollamadocker
+        minReplicas: 1
+        maxReplicas: 1
+        containers:
+        - name: kserve-container
+          image: docker.io/gjkarthik/vllm:latest
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              set -e && 
+              python3 -m vllm.entrypoints.openai.api_server 
+              --model {{inputs.parameters.modelName}}
+              --dtype {{inputs.parameters.dataType}}
+              --quantization {{inputs.parameters.quantization}}
+              --gpu-memory-utilization {{inputs.parameters.gpuMemoryUtilization}}
+              --max-model-len {{inputs.parameters.maxTokenLen}}
+              --max-num-batched-tokens {{inputs.parameters.maxNumBatchedTokens}}
+              --max-num-seqs {{inputs.parameters.maxNumSeqs}}
+              --enable-prefix-caching
+          env:
+            - name: MODEL
+              value: "{{inputs.parameters.modelName}}"
