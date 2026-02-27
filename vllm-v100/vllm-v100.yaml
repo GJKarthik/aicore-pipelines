@@ -56,7 +56,6 @@ spec:
               python3 -m vllm.entrypoints.openai.api_server 
               --model {{inputs.parameters.modelName}}
               --dtype {{inputs.parameters.dataType}}
-              --quantization {{inputs.parameters.quantization}}
               --gpu-memory-utilization {{inputs.parameters.gpuMemoryUtilization}}
               --max-model-len {{inputs.parameters.maxTokenLen}}
               --max-num-batched-tokens {{inputs.parameters.maxNumBatchedTokens}}
