@@ -26,8 +26,6 @@ spec:
         default: "32768"
       - name: maxNumSeqs
         default: "512"
-      - name: quantization
-        default: "awq_marlin"
       - name: resourcePlan
         type: "string"
         default: "train.l"
@@ -64,6 +62,7 @@ spec:
               --max-num-batched-tokens {{inputs.parameters.maxNumBatchedTokens}}
               --max-num-seqs {{inputs.parameters.maxNumSeqs}}
               --enable-prefix-caching
+              --enable-chunked-prefill
           env:
             - name: MODEL
               value: "{{inputs.parameters.modelName}}"
