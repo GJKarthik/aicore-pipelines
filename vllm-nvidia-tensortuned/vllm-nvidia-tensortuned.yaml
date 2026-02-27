@@ -27,7 +27,7 @@ spec:
       - name: maxNumSeqs
         default: "256"
       - name: quantization
-        default: "awq"
+        default: "awq_marlin"
       - name: resourcePlan
         type: "string"
         default: "infer.s"
@@ -64,7 +64,6 @@ spec:
               --max-num-batched-tokens {{inputs.parameters.maxNumBatchedTokens}}
               --max-num-seqs {{inputs.parameters.maxNumSeqs}}
               --enable-prefix-caching
-              --trust-remote-code
           env:
             - name: MODEL
               value: "{{inputs.parameters.modelName}}"
