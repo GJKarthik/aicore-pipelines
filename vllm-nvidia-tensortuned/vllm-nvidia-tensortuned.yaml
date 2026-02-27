@@ -1,0 +1,77 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: nvidia-llama-t4-optimized
+  annotations:
+    scenarios.ai.sap.com/description: "vLLM T4 Optimized - Tensor Core Saturated"
+    scenarios.ai.sap.com/name: "nvidia-llama-t4-optimized"
+    executables.ai.sap.com/description: "Maximized TPS for Llama 3.1 8B AWQ on T4"
+    executables.ai.sap.com/name: "nvidia-llama-t4-optimized"
+  labels:
+    scenarios.ai.sap.com/id: "nvidia-llama-t4-optimized"
+    ai.sap.com/version: "1.0.0"
+spec:
+  inputs:
+    parameters:
+      - name: modelName
+        default: "ArtusDev/nvidia_Llama-3.1-Nemotron-Nano-8B-v1-AWQ" 
+        type: string
+      - name: dataType
+        default: "half" # MUST be half for T4 Tensor Cores
+        type: string
+      - name: gpuMemoryUtilization
+        default: "0.95" # Maximized for larger KV Cache
+        type: string
+      - name: maxTokenLen
+        default: "4096" # Reduced from 8k to allow for much larger Batch Sizes
+        type: string
+      - name: maxNumBatchedTokens
+        default: "8192" # Increased to saturate Tensor Cores
+        type: string
+      - name: maxNumSeqs
+        default: "256" # Increased to allow higher concurrency (TPS)
+        type: string
+      - name: quantization
+        default: "awq" # Specifically triggers T4-optimized AWQ kernels
+        type: string
+      - name: resourcePlan
+        type: "string"
+        default: "infer.l"
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      annotations:
+        autoscaling.knative.dev/metric: concurrency
+        autoscaling.knative.dev/target: 1
+      labels:
+        ai.sap.com/resourcePlan: "{{inputs.parameters.resourcePlan}}"
+    spec:
+      predictor:
+        imagePullSecrets:
+        - name: ollamadocker
+        minReplicas: 1
+        maxReplicas: 1
+        containers:
+        - name: kserve-container
+          image: docker.io/gjkarthik/vllm:latest
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              set -e && echo "-------------Starting Optimized vLLM Server--------------" 
+              && python3 -m vllm.entrypoints.openai.api_server 
+              --model {{inputs.parameters.modelName}}
+              --dtype {{inputs.parameters.dataType}}
+              --quantization {{inputs.parameters.quantization}}
+              --gpu-memory-utilization {{inputs.parameters.gpuMemoryUtilization}}
+              --max-model-len {{inputs.parameters.maxTokenLen}}
+              --max-num-batched-tokens {{inputs.parameters.maxNumBatchedTokens}}
+              --max-num-seqs {{inputs.parameters.maxNumSeqs}}
+              --enable-prefix-caching
+              --disable-log-requests
+              --trust-remote-code
+          env:
+            - name: MODEL
+              value: "{{inputs.parameters.modelName}}"
