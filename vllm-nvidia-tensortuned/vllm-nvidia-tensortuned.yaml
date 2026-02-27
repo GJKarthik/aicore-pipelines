@@ -19,7 +19,7 @@ spec:
       - name: dataType
         default: "half"
       - name: gpuMemoryUtilization
-        default: "0.95"
+        default: "0.80"
       - name: maxTokenLen
         default: "4096"
       - name: maxNumBatchedTokens
