@@ -5,7 +5,7 @@ metadata:
   annotations:
     scenarios.ai.sap.com/description: "vLLM T4 Optimized - Tensor Core Saturated"
     scenarios.ai.sap.com/name: "nvidia-llama-t4-optimized"
-    executables.ai.sap.com/description: "Maximized TPS for Llama 3.1 8B AWQ on T4"
+    executables.ai.sap.com/description: "Maximized TPS for Mistral 7B AWQ on T4"
     executables.ai.sap.com/name: "nvidia-llama-t4-optimized"
   labels:
     scenarios.ai.sap.com/id: "nvidia-llama-t4-optimized"
@@ -14,7 +14,7 @@ spec:
   inputs:
     parameters:
       - name: modelName
-        default: "ArtusDev/nvidia_Llama-3.1-Nemotron-Nano-8B-v1-AWQ" 
+        default: "solidrust/Mistral-7B-Instruct-v0.3-AWQ" 
         type: string
       - name: dataType
         default: "half"
