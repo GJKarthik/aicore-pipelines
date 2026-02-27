@@ -19,13 +19,13 @@ spec:
       - name: dataType
         default: "half"
       - name: gpuMemoryUtilization
-        default: "0.80"
+        default: "0.92"
       - name: maxTokenLen
-        default: "4096"
+        default: "16384"
       - name: maxNumBatchedTokens
-        default: "8192"
+        default: "32768"
       - name: maxNumSeqs
-        default: "256"
+        default: "512"
       - name: quantization
         default: "awq_marlin"
       - name: resourcePlan
