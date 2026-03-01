@@ -1,0 +1,46 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: mistral-7b-trt-t4
+  annotations:
+    scenarios.ai.sap.com/description: "Mistral 7B Optimized for T4 via TensorRT-LLM"
+    scenarios.ai.sap.com/name: "mistral-trt-llm"
+    executables.ai.sap.com/name: "mistral-trt-llm"
+spec:
+  inputs:
+    parameters:
+      - name: modelName
+        default: "solidrust/Mistral-7B-Instruct-v0.3-AWQ"
+        type: string
+      - name: maxContext
+        default: "8192"
+        type: string
+        description: "Max sequence length (Input + Output)"
+      - name: maxBatchSize
+        default: "8"
+        type: string
+        description: "Max concurrent requests in a single GPU step"
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      labels:
+        ai.sap.com/resourcePlan: "infer.l" # T4 Resource Plan
+    spec: |
+      predictor:
+        imagePullSecrets:
+        - name: ollamadocker
+        minReplicas: 1
+        maxReplicas: 1
+        containers:
+        - name: kserve-container
+          image: docker.io/gjkarthik/mistral-trt-t4:latest
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          env:
+            - name: MODEL
+              value: "{{inputs.parameters.modelName}}"
+            - name: MAX_CONTEXT
+              value: "{{inputs.parameters.maxContext}}"
+            - name: MAX_BATCH_SIZE
+              value: "{{inputs.parameters.maxBatchSize}}"
