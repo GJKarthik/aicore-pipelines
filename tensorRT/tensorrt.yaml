@@ -8,6 +8,7 @@ metadata:
     executables.ai.sap.com/name: "mistral-trt-llm"
   labels:
     ai.sap.com/resourcePlan: "infer.l"
+    ai.sap.com/version: "1.0.0"
 spec:
   inputs:
     parameters:
