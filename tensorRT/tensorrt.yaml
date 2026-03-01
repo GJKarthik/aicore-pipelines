@@ -6,6 +6,8 @@ metadata:
     scenarios.ai.sap.com/description: "Mistral 7B Optimized for T4 via TensorRT-LLM"
     scenarios.ai.sap.com/name: "mistral-trt-llm"
     executables.ai.sap.com/name: "mistral-trt-llm"
+  labels:
+    ai.sap.com/resourcePlan: "infer.l"
 spec:
   inputs:
     parameters:
@@ -23,8 +25,8 @@ spec:
   template:
     apiVersion: "serving.kserve.io/v1beta1"
     metadata:
-      labels:
-        ai.sap.com/resourcePlan: "infer.l" # T4 Resource Plan
+      labels: |
+        ai.sap.com/resourcePlan: "infer.l"
     spec: |
       predictor:
         imagePullSecrets:
