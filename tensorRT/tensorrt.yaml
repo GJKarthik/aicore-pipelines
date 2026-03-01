@@ -3,24 +3,34 @@ kind: ServingTemplate
 metadata:
   name: mistral-7b-trt-t4
   annotations:
-    scenarios.ai.sap.com/description: "Mistral 7B Optimized for T4 via TensorRT-LLM"
+    scenarios.ai.sap.com/description: "Mistral 7B v0.3 Optimized for T4 via TensorRT-LLM (INT4 AWQ + INT8 KV)"
     scenarios.ai.sap.com/name: "mistral-7b-trt-t4"
-    executables.ai.sap.com/description: "TensorRT-LLM optimized inference for Mistral 7B AWQ"
+    executables.ai.sap.com/description: "TensorRT-LLM optimized inference using pre-converted checkpoints"
     executables.ai.sap.com/name: "mistral-7b-trt-t4"
   labels:
     scenarios.ai.sap.com/id: "mistral-7b-trt-t4"
-    ai.sap.com/version: "1.0.0"
+    ai.sap.com/version: "2.0.0"
 spec:
   inputs:
     parameters:
-      - name: modelName
-        default: "solidrust/Mistral-7B-Instruct-v0.3-AWQ"
+      # Pre-converted TRT-LLM checkpoint (INT4 AWQ + INT8 KV cache)
+      # Contains: config.json + rank0.safetensors (no tokenizer)
+      - name: checkpointModel
+        default: "rungalileo/mistral-7b-instruct-v0.3-trtllm-ckpt-wq_int4_awq-kv_int8"
         type: string
-      - name: maxContext
-        default: "8192"
+      # Base model for tokenizer files (required - not included in checkpoint)
+      - name: tokenizerModel
+        default: "mistralai/Mistral-7B-Instruct-v0.3"
         type: string
+      # Build configuration
       - name: maxBatchSize
         default: "8"
+        type: string
+      - name: maxInputLen
+        default: "4096"
+        type: string
+      - name: maxSeqLen
+        default: "8192"
         type: string
       - name: resourcePlan
         type: "string"
@@ -46,9 +56,16 @@ spec:
             - containerPort: 8000
               protocol: TCP
           env:
+            # Pre-converted checkpoint model (INT4 AWQ + INT8 KV)
             - name: MODEL
-              value: "{{inputs.parameters.modelName}}"
-            - name: MAX_CONTEXT
-              value: "{{inputs.parameters.maxContext}}"
+              value: "{{inputs.parameters.checkpointModel}}"
+            # Base model for tokenizer files (required - not in checkpoint)
+            - name: TOKENIZER
+              value: "{{inputs.parameters.tokenizerModel}}"
+            # Build configuration
             - name: MAX_BATCH_SIZE
               value: "{{inputs.parameters.maxBatchSize}}"
+            - name: MAX_INPUT_LEN
+              value: "{{inputs.parameters.maxInputLen}}"
+            - name: MAX_SEQ_LEN
+              value: "{{inputs.parameters.maxSeqLen}}"
