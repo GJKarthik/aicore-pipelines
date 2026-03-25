@@ -14,10 +14,10 @@ spec:
   inputs:
     parameters:
       - name: modelName
-        default: "unsloth/Qwen3.5-35B-A3B-GGUF" 
+        default: "Qwen/Qwen3.5-35B-A3B-FP8" 
         type: string
       - name: dataType
-        default: "half"
+        default: "auto"
       - name: gpuMemoryUtilization
         default: "0.92"
       - name: maxTokenLen
@@ -53,9 +53,8 @@ spec:
           args:
             - >
               set -e && 
-              python3 -m vllm.entrypoints.openai.api_server 
+              python3 -m vllm.entrypoints.openai.api_server
               --model {{inputs.parameters.modelName}}
-              --trust-remote-code
               --dtype {{inputs.parameters.dataType}}
               --gpu-memory-utilization {{inputs.parameters.gpuMemoryUtilization}}
               --max-model-len {{inputs.parameters.maxTokenLen}}
@@ -63,9 +62,14 @@ spec:
               --max-num-seqs {{inputs.parameters.maxNumSeqs}}
               --enable-prefix-caching
               --enable-chunked-prefill
+              --trust-remote-code
               --reasoning-parser qwen3
-              --speculative-config '{"method":"mtp","num_speculative_tokens":1}'
+              --speculative-config '{"method":"qwen3_next_mtp","num_speculative_tokens":2}'   # Official MTP for Qwen3.5
+              --enforce-eager
+              --tensor-parallel-size 1
+              --disable-log-requests
               --disable-log-stats
+              --language-model-only
           env:
             - name: MODEL
               value: "{{inputs.parameters.modelName}}"
