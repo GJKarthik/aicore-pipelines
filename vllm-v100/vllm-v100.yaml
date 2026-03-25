@@ -1,20 +1,20 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
 metadata:
-  name: nvidia-mistral-v100-optimized
+  name: qwen35-v100-max-throughput
   annotations:
-    scenarios.ai.sap.com/description: "vLLM v100 Optimized - Tensor Core Saturated"
-    scenarios.ai.sap.com/name: "nvidia-mistral-v100-optimized"
-    executables.ai.sap.com/description: "Maximized TPS for Mistral 7B AWQ on v100"
-    executables.ai.sap.com/name: "nvidia-mistral-v100-optimized"
+    scenarios.ai.sap.com/description: "Optimized Qwen 3.5 35B MoE for V100"
+    scenarios.ai.sap.com/name: "qwen35-v100-max-throughput"
+    executables.ai.sap.com/description: "Optimized Qwen 3.5 35B MoE for V100"
+    executables.ai.sap.com/name: "qwen35-v100-max-throughput"
   labels:
-    scenarios.ai.sap.com/id: "nvidia-mistral-v100-optimized"
+    scenarios.ai.sap.com/id: "qwen35-v100-max-throughput"
     ai.sap.com/version: "1.0.0"
 spec:
   inputs:
     parameters:
       - name: modelName
-        default: "solidrust/Mistral-7B-Instruct-v0.3-AWQ" 
+        default: "unsloth/Qwen3.5-35B-A3B-GGUF" 
         type: string
       - name: dataType
         default: "half"
@@ -62,6 +62,11 @@ spec:
               --max-num-seqs {{inputs.parameters.maxNumSeqs}}
               --enable-prefix-caching
               --enable-chunked-prefill
+              --reasoning-parser qwen3
+              --language-model-only
+              --speculative-config '{"method":"qwen3_next_mtp","num_speculative_tokens":2}'
+              --enforce-eager
+              --disable-log-stats
           env:
             - name: MODEL
               value: "{{inputs.parameters.modelName}}"
