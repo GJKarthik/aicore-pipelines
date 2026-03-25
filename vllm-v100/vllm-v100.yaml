@@ -55,6 +55,7 @@ spec:
               set -e && 
               python3 -m vllm.entrypoints.openai.api_server 
               --model {{inputs.parameters.modelName}}
+              --trust-remote-code
               --dtype {{inputs.parameters.dataType}}
               --gpu-memory-utilization {{inputs.parameters.gpuMemoryUtilization}}
               --max-model-len {{inputs.parameters.maxTokenLen}}
@@ -63,8 +64,7 @@ spec:
               --enable-prefix-caching
               --enable-chunked-prefill
               --reasoning-parser qwen3
-              --speculative-config '{"method":"qwen3_next_mtp","num_speculative_tokens":2}'
-              --enforce-eager
+              --speculative-config '{"method":"mtp","num_speculative_tokens":1}'
               --disable-log-stats
           env:
             - name: MODEL
