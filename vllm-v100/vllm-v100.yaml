@@ -25,7 +25,7 @@ spec:
       - name: maxNumBatchedTokens
         default: "32768"
       - name: maxNumSeqs
-        default: "512"
+        default: "64"
       - name: resourcePlan
         type: "string"
         default: "train.l"
