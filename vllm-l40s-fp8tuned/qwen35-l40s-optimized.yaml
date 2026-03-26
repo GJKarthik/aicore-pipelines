@@ -9,7 +9,7 @@ metadata:
     executables.ai.sap.com/name: "qwen35-l40s-optimized"
   labels:
     scenarios.ai.sap.com/id: "qwen35-l40s-optimized"
-    ai.sap.com/version: "1.0.2"
+    ai.sap.com/version: "1.0.4"
 spec:
   inputs:
     parameters:
@@ -56,7 +56,7 @@ spec:
               pip install --no-deps --upgrade "transformers>=5.3.0" "huggingface_hub>=0.28.0" &&
               chmod -R 777 /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/utils/configs 2>/dev/null || true &&
               chmod -R 777 /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/fused_moe/configs 2>/dev/null || true &&
-              echo "aW1wb3J0IG9zLCBqc29uLCBzeXMKdHJ5OgogICAgaW1wb3J0IHRvcmNoCiAgICBpZiBub3QgdG9yY2guY3VkYS5pc19hdmFpbGFibGUoKTogc3lzLmV4aXQoMCkKICAgIGRuID0gdG9yY2guY3VkYS5nZXRfZGV2aWNlX25hbWUoMCkucmVwbGFjZSgiICIsICJfIikKICAgIGlmICJMNDAiIG5vdCBpbiBkbjogc3lzLmV4aXQoMCkKZXhjZXB0OiBzeXMuZXhpdCgwKQpESU1TID0gWygxMjI4OCwyMDQ4KSwoMjA0OCw0MDk2KSwoMTAyNCwyMDQ4KSwoMjA0OCw1MTIpLCg5MjE2LDIwNDgpXQpDRkcgPSAiL3Vzci9sb2NhbC9saWIvcHl0aG9uMy4xMi9kaXN0LXBhY2thZ2VzL3ZsbG0vbW9kZWxfZXhlY3V0b3IvbGF5ZXJzL3F1YW50aXphdGlvbi91dGlscy9jb25maWdzIgpmb3IgTiwgSyBpbiBESU1TOgogICAgYyA9IHsiQkxPQ0tfU0laRV9NIjoxMjgsIkJMT0NLX1NJWkVfTiI6MjU2IGlmIE4+PTEwMDAwIGVsc2UgMTI4LCJCTE9DS19TSVpFX0siOjEyOCBpZiBLPj00MDAwIGVsc2UgNjQsIkdST1VQX1NJWkVfTSI6OCwibnVtX3dhcnBzIjo4IGlmIE4+PTEwMDAwIGVsc2UgNCwibnVtX3N0YWdlcyI6NCBpZiBLPj00MDAwIGVsc2UgM30KICAgIGZuID0gZiJOPXtOfSxLPXtLfSxkZXZpY2VfbmFtZT17ZG59LGR0eXBlPWZwOF93OGE4LGJsb2NrX3NoYXBlPVsxMjgsIDEyOF0uanNvbiIKICAgIGZwID0gb3MucGF0aC5qb2luKENGRywgZm4pCiAgICBpZiBub3Qgb3MucGF0aC5leGlzdHMoZnApOgogICAgICAgIHRyeToKICAgICAgICAgICAgd2l0aCBvcGVuKGZwLCJ3IikgYXMgZjogZi53cml0ZShqc29uLmR1bXBzKGMpKQogICAgICAgICAgICBwcmludChmIkNyZWF0ZWQ6IHtmbn0iKQogICAgICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZTogcHJpbnQoZiJGYWlsZWQ6IHtlfSIp" | base64 -d | python3 &&
+              echo "aW1wb3J0IG9zLCBqc29uLCBzeXMKdHJ5OgogICAgaW1wb3J0IHRvcmNoCiAgICBpZiBub3QgdG9yY2guY3VkYS5pc19hdmFpbGFibGUoKTogc3lzLmV4aXQoMCkKICAgIGRuID0gdG9yY2guY3VkYS5nZXRfZGV2aWNlX25hbWUoMCkucmVwbGFjZSgiICIsICJfIikKICAgIGlmICJMNDAiIG5vdCBpbiBkbjogc3lzLmV4aXQoMCkKZXhjZXB0OiBzeXMuZXhpdCgwKQpESU1TID0gWygxMjI4OCwyMDQ4KSwoMjA0OCw0MDk2KSwoMTAyNCwyMDQ4KSwoMjA0OCw1MTIpLCg5MjE2LDIwNDgpXQpDRkcgPSAiL3Vzci9sb2NhbC9saWIvcHl0aG9uMy4xMi9kaXN0LXBhY2thZ2VzL3ZsbG0vbW9kZWxfZXhlY3V0b3IvbGF5ZXJzL3F1YW50aXphdGlvbi91dGlscy9jb25maWdzIgpmb3IgTiwgSyBpbiBESU1TOgogICAgYyA9IHsiQkxPQ0tfU0laRV9NIjoxMjgsIkJMT0NLX1NJWkVfTiI6MjU2IGlmIE4+PTEwMDAwIGVsc2UgMTI4LCJCTE9DS19TSVpFX0siOjEyOCBpZiBLPj00MDAwIGVsc2UgNjQsIkdST1VQX1NJWkVfTSI6OCwibnVtX3dhcnBzIjo4IGlmIE4+PTEwMDAwIGVsc2UgNCwibnVtX3N0YWdlcyI6NCBpZiBLPj00MDAwIGVsc2UgM30KICAgIGZuID0gZiJOPXtOfSxLPXtLfSxkZXZpY2VfbmFtZT17ZG59LGR0eXBlPWZwOF93OGE4LGJsb2NrX3NoYXBlPVsxMjgsMTI4XS5qc29uIgogICAgZnAgPSBvcy5wYXRoLmpvaW4oQ0ZHLCBmbikKICAgIGlmIG5vdCBvcy5wYXRoLmV4aXN0cyhmcCk6CiAgICAgICAgdHJ5OgogICAgICAgICAgICB3aXRoIG9wZW4oZnAsInciKSBhcyBmOiBmLndyaXRlKGpzb24uZHVtcHMoYykpCiAgICAgICAgICAgIHByaW50KGYiQ3JlYXRlZDoge2ZufSIpCiAgICAgICAgZXhjZXB0IEV4Y2VwdGlvbiBhcyBlOiBwcmludChmIkZhaWxlZDoge2V9IikK" | base64 -d | python3 &&
               python3 -m vllm.entrypoints.openai.api_server
               --model {{inputs.parameters.modelName}}
               --dtype {{inputs.parameters.dataType}}
@@ -66,9 +66,9 @@ spec:
               --max-num-seqs {{inputs.parameters.maxNumSeqs}}
               --enable-prefix-caching
               --enable-chunked-prefill
-              --reasoning-parser qwen3
               --tensor-parallel-size 1
               --language-model-only
+              --kv-cache-dtype fp8
           env:
             - name: MODEL
               value: "{{inputs.parameters.modelName}}"
