@@ -9,7 +9,7 @@ metadata:
     executables.ai.sap.com/name: "qwen35-l40s-optimized"
   labels:
     scenarios.ai.sap.com/id: "qwen35-l40s-optimized"
-    ai.sap.com/version: "1.0.7"
+    ai.sap.com/version: "1.0.8"
 spec:
   inputs:
     parameters:
@@ -69,7 +69,7 @@ spec:
               --tensor-parallel-size 1
               --language-model-only
               --kv-cache-dtype fp8
-              --speculative-config '{"method":"qwen3_next_mtp","num_speculative_tokens":2}'
+              --speculative-config '{"method":"mtp","num_speculative_tokens":1}'
           env:
             - name: MODEL
               value: "{{inputs.parameters.modelName}}"
