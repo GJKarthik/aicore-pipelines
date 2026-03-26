@@ -53,6 +53,7 @@ spec:
           args:
             - >
               set -e && 
+              pip install --no-deps --upgrade "transformers>=5.3.0" "huggingface_hub>=0.28.0" &&
               python3 -m vllm.entrypoints.openai.api_server
               --model {{inputs.parameters.modelName}}
               --dtype {{inputs.parameters.dataType}}
