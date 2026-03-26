@@ -65,8 +65,6 @@ spec:
               --enable-chunked-prefill
               --reasoning-parser qwen3
               --tensor-parallel-size 1
-              --disable-log-requests
-              --disable-log-stats
               --language-model-only
           env:
             - name: MODEL
