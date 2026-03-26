@@ -1,0 +1,70 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: qwen35-9b-l40s
+  annotations:
+    scenarios.ai.sap.com/description: "Optimized Qwen 3.5 9B for L40S"
+    scenarios.ai.sap.com/name: "qwen35-9b-l40s"
+    executables.ai.sap.com/description: "Optimized Qwen 3.5 9B for L40S"
+    executables.ai.sap.com/name: "qwen35-9b-l40s"
+  labels:
+    scenarios.ai.sap.com/id: "qwen35-9b-l40s"
+    ai.sap.com/version: "1.0.0"
+spec:
+  inputs:
+    parameters:
+      - name: modelName
+        default: "Qwen/Qwen3.5-9B" 
+        type: string
+      - name: dataType
+        default: "bfloat16"
+      - name: gpuMemoryUtilization
+        default: "0.95"
+      - name: maxTokenLen
+        default: "65536"
+      - name: maxNumBatchedTokens
+        default: "65536"
+      - name: maxNumSeqs
+        default: "128"
+      - name: resourcePlan
+        type: "string"
+        default: "train.l"
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      annotations: |
+        autoscaling.knative.dev/metric: "concurrency"
+        autoscaling.knative.dev/target: "1"
+      labels: |
+        ai.sap.com/resourcePlan: "{{inputs.parameters.resourcePlan}}"
+    spec: |
+      predictor:
+        imagePullSecrets:
+        - name: ollamadocker
+        minReplicas: 1
+        maxReplicas: 1
+        containers:
+        - name: kserve-container
+          image: docker.io/gjkarthik/vllm:l40s-fp8-tuned
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              set -e && 
+              pip install --no-deps --upgrade "transformers>=5.3.0" "huggingface_hub>=0.28.0" &&
+              python3 -m vllm.entrypoints.openai.api_server
+              --model {{inputs.parameters.modelName}}
+              --dtype {{inputs.parameters.dataType}}
+              --gpu-memory-utilization {{inputs.parameters.gpuMemoryUtilization}}
+              --max-model-len {{inputs.parameters.maxTokenLen}}
+              --max-num-batched-tokens {{inputs.parameters.maxNumBatchedTokens}}
+              --max-num-seqs {{inputs.parameters.maxNumSeqs}}
+              --enable-prefix-caching
+              --enable-chunked-prefill
+              --tensor-parallel-size 1
+              --kv-cache-dtype fp8
+          env:
+            - name: MODEL
+              value: "{{inputs.parameters.modelName}}"
