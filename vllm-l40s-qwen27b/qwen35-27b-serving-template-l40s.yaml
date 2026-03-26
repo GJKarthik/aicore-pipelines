@@ -9,7 +9,7 @@ metadata:
     executables.ai.sap.com/name: "qwen35-27b-l40s"
   labels:
     scenarios.ai.sap.com/id: "qwen35-27b-l40s"
-    ai.sap.com/version: "1.0.0"
+    ai.sap.com/version: "1.0.1"
 spec:
   inputs:
     parameters:
@@ -54,6 +54,8 @@ spec:
             - >
               set -e && 
               pip install --no-deps --upgrade "transformers>=5.3.0" "huggingface_hub>=0.28.0" &&
+              chmod -R 777 /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/utils/configs 2>/dev/null || true &&
+              echo "aW1wb3J0IG9zLCBqc29uLCBzeXMKdHJ5OgogICAgaW1wb3J0IHRvcmNoCiAgICBpZiBub3QgdG9yY2guY3VkYS5pc19hdmFpbGFibGUoKTogc3lzLmV4aXQoMCkKICAgIGRuID0gdG9yY2guY3VkYS5nZXRfZGV2aWNlX25hbWUoMCkucmVwbGFjZSgiICIsICJfIikKICAgIGlmICJMNDAiIG5vdCBpbiBkbjogc3lzLmV4aXQoMCkKZXhjZXB0OiBzeXMuZXhpdCgwKQoKIyBGUDggVzhBOCBCbG9jayBrZXJuZWwgY29uZmlncyBmb3IgUXdlbjMuNS0yN0IgKERlbnNlIG1vZGVsKQojIERpbWVuc2lvbnMgZnJvbSB0aGUgd2FybmluZyBtZXNzYWdlcyBkdXJpbmcgd2FybXVwCkRJTVMgPSBbCiAgICAoMTYzODQsIDUxMjApLCAgICMgUUtWIHByb2plY3Rpb24KICAgICgzNDgxNiwgNTEyMCksICAgIyBGRk4gdXAgcHJvamVjdGlvbiAoaW50ZXJtZWRpYXRlX3NpemUpCiAgICAoNTEyMCwgMTc0MDgpLCAgICMgRkZOIGRvd24gcHJvamVjdGlvbgogICAgKDE0MzM2LCA1MTIwKSwgICAjIE91dHB1dCBwcm9qZWN0aW9uCiAgICAoNTEyMCwgNjE0NCksICAgICMgR2F0ZSBwcm9qZWN0aW9uCl0KQ0ZHID0gIi91c3IvbG9jYWwvbGliL3B5dGhvbjMuMTIvZGlzdC1wYWNrYWdlcy92bGxtL21vZGVsX2V4ZWN1dG9yL2xheWVycy9xdWFudGl6YXRpb24vdXRpbHMvY29uZmlncyIKZm9yIE4sIEsgaW4gRElNUzoKICAgIGNmZ19kYXRhID0ge30KICAgIGZvciBicyBpbiBbMSwyLDQsOCwxNiwzMiw2NCwxMjhdOgogICAgICAgIGNmZ19kYXRhW3N0cihicyldID0geyJCTE9DS19TSVpFX00iOiAxNiBpZiBicyA8PSA4IGVsc2UgMzIgaWYgYnMgPD0gMzIgZWxzZSA2NCwgIkJMT0NLX1NJWkVfTiI6IDI1NiBpZiBOID49IDEwMDAwIGVsc2UgMTI4LCAiQkxPQ0tfU0laRV9LIjogMTI4IGlmIEsgPj0gNDAwMCBlbHNlIDY0LCAiR1JPVVBfU0laRV9NIjogMTYsICJudW1fd2FycHMiOiA4IGlmIE4gPj0gMTAwMDAgZWxzZSA0LCAibnVtX3N0YWdlcyI6IDN9CiAgICBmbiA9IGYiTj17Tn0sSz17S30sZGV2aWNlX25hbWU9e2RufSxkdHlwZT1mcDhfdzhhOCxibG9ja19zaGFwZT1bMTI4LDEyOF0uanNvbiIKICAgIGZwID0gb3MucGF0aC5qb2luKENGRywgZm4pCiAgICBpZiBub3Qgb3MucGF0aC5leGlzdHMoZnApOgogICAgICAgIHRyeToKICAgICAgICAgICAgd2l0aCBvcGVuKGZwLCJ3IikgYXMgZjoganNvbi5kdW1wKGNmZ19kYXRhLCBmLCBpbmRlbnQ9MikKICAgICAgICAgICAgcHJpbnQoZiJDcmVhdGVkIEZQODoge2ZufSIpCiAgICAgICAgZXhjZXB0IEV4Y2VwdGlvbiBhcyBlOiBwcmludChmIkZhaWxlZCBGUDg6IHtlfSIp" | base64 -d | python3 &&
               python3 -m vllm.entrypoints.openai.api_server
               --model {{inputs.parameters.modelName}}
               --dtype {{inputs.parameters.dataType}}
