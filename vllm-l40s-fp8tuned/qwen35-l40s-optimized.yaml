@@ -3,13 +3,13 @@ kind: ServingTemplate
 metadata:
   name: qwen35-l40s-optimized
   annotations:
-    scenarios.ai.sap.com/description: "Optimized Qwen 3.5 35B MoE for L40S with FP8 kernel auto-tune"
+    scenarios.ai.sap.com/description: "Optimized Qwen 3.5 35B MoE for L40S with FP8 kernel configs"
     scenarios.ai.sap.com/name: "qwen35-l40s-optimized"
-    executables.ai.sap.com/description: "Optimized Qwen 3.5 35B MoE for L40S with auto-generated FP8 kernel configs"
+    executables.ai.sap.com/description: "Optimized Qwen 3.5 35B MoE for L40S with FP8 kernel configs"
     executables.ai.sap.com/name: "qwen35-l40s-optimized"
   labels:
     scenarios.ai.sap.com/id: "qwen35-l40s-optimized"
-    ai.sap.com/version: "1.0.1"
+    ai.sap.com/version: "1.0.2"
 spec:
   inputs:
     parameters:
@@ -18,19 +18,14 @@ spec:
         type: string
       - name: dataType
         default: "auto"
-        type: string
       - name: gpuMemoryUtilization
         default: "0.92"
-        type: string
       - name: maxTokenLen
         default: "16384"
-        type: string
       - name: maxNumBatchedTokens
         default: "32768"
-        type: string
       - name: maxNumSeqs
         default: "64"
-        type: string
       - name: resourcePlan
         type: "string"
         default: "train.l"
@@ -57,105 +52,11 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - >
-              set -e &&
-              echo "============================================" &&
-              echo "SAP AI Core vLLM Container Starting" &&
-              echo "============================================" &&
-              
-              echo "Step 1: Upgrading transformers and huggingface_hub..." &&
+              set -e && 
               pip install --no-deps --upgrade "transformers>=5.3.0" "huggingface_hub>=0.28.0" &&
-              
-              echo "Step 2: Setting permissions for FP8 config directories..." &&
               chmod -R 777 /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/utils/configs 2>/dev/null || true &&
               chmod -R 777 /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/fused_moe/configs 2>/dev/null || true &&
-              
-              echo "Step 3: Generating FP8 kernel configs for L40S..." &&
-              python3 -c '
-import os, json, sys
-try:
-    import torch
-    if not torch.cuda.is_available():
-        print("CUDA not available, skipping FP8 config generation")
-        sys.exit(0)
-    device_name = torch.cuda.get_device_name(0).replace(" ", "_")
-    print(f"Detected GPU: {device_name}")
-    if "L40" not in device_name:
-        print(f"Not L40/L40S GPU ({device_name}), skipping config generation")
-        sys.exit(0)
-except Exception as e:
-    print(f"GPU detection error: {e}")
-    sys.exit(0)
-
-# Required dimensions for Qwen3.5-35B-A3B model
-DIMENSIONS = [
-    (12288, 2048),
-    (2048, 4096),
-    (1024, 2048),
-    (2048, 512),
-    (9216, 2048),
-]
-
-VLLM_FP8_CONFIG_DIR = "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/utils/configs"
-VLLM_MOE_CONFIG_DIR = "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/fused_moe/configs"
-
-print(f"Generating {len(DIMENSIONS)} FP8 kernel configs for {device_name}...")
-
-generated = 0
-for N, K in DIMENSIONS:
-    # Tuned config for L40S Ada Lovelace architecture
-    config = {
-        "BLOCK_SIZE_M": 128,
-        "BLOCK_SIZE_N": 256 if N >= 10000 else 128,
-        "BLOCK_SIZE_K": 128 if K >= 4000 else 64,
-        "GROUP_SIZE_M": 8,
-        "num_warps": 8 if N >= 10000 else 4,
-        "num_stages": 4 if K >= 4000 else 3,
-    }
-    
-    filename = f"N={N},K={K},device_name={device_name},dtype=fp8_w8a8,block_shape=[128, 128].json"
-    filepath = os.path.join(VLLM_FP8_CONFIG_DIR, filename)
-    
-    if os.path.exists(filepath):
-        print(f"  [EXISTS] {filename}")
-        continue
-    
-    try:
-        with open(filepath, "w") as f:
-            json.dump(config, f, indent=2)
-        print(f"  [CREATED] {filename}")
-        generated += 1
-    except PermissionError:
-        print(f"  [PERM ERROR] Cannot write to {filepath}")
-    except Exception as e:
-        print(f"  [ERROR] {filename}: {e}")
-
-# Also generate MoE config if missing
-moe_dims = [(256, 512)]  # E=256, N=512 for MoE
-for E, N in moe_dims:
-    moe_config = {
-        "BLOCK_SIZE_M": 64,
-        "BLOCK_SIZE_N": 64,
-        "BLOCK_SIZE_K": 32,
-        "GROUP_SIZE_M": 8,
-        "num_warps": 4,
-        "num_stages": 2,
-    }
-    moe_filename = f"E={E},N={N},device_name={device_name},dtype=fp8_w8a8,block_shape=[128, 128].json"
-    moe_filepath = os.path.join(VLLM_MOE_CONFIG_DIR, moe_filename)
-    
-    if not os.path.exists(moe_filepath):
-        try:
-            with open(moe_filepath, "w") as f:
-                json.dump(moe_config, f, indent=2)
-            print(f"  [CREATED] MoE config: {moe_filename}")
-            generated += 1
-        except Exception as e:
-            print(f"  [ERROR] MoE config: {e}")
-
-print(f"FP8 config generation complete! Generated {generated} new configs.")
-' || echo "FP8 config generation skipped or failed (non-fatal)" &&
-              
-              echo "Step 4: Starting vLLM server..." &&
+              echo "aW1wb3J0IG9zLCBqc29uLCBzeXMKdHJ5OgogICAgaW1wb3J0IHRvcmNoCiAgICBpZiBub3QgdG9yY2guY3VkYS5pc19hdmFpbGFibGUoKTogc3lzLmV4aXQoMCkKICAgIGRuID0gdG9yY2guY3VkYS5nZXRfZGV2aWNlX25hbWUoMCkucmVwbGFjZSgiICIsICJfIikKICAgIGlmICJMNDAiIG5vdCBpbiBkbjogc3lzLmV4aXQoMCkKZXhjZXB0OiBzeXMuZXhpdCgwKQpESU1TID0gWygxMjI4OCwyMDQ4KSwoMjA0OCw0MDk2KSwoMTAyNCwyMDQ4KSwoMjA0OCw1MTIpLCg5MjE2LDIwNDgpXQpDRkcgPSAiL3Vzci9sb2NhbC9saWIvcHl0aG9uMy4xMi9kaXN0LXBhY2thZ2VzL3ZsbG0vbW9kZWxfZXhlY3V0b3IvbGF5ZXJzL3F1YW50aXphdGlvbi91dGlscy9jb25maWdzIgpmb3IgTiwgSyBpbiBESU1TOgogICAgYyA9IHsiQkxPQ0tfU0laRV9NIjoxMjgsIkJMT0NLX1NJWkVfTiI6MjU2IGlmIE4+PTEwMDAwIGVsc2UgMTI4LCJCTE9DS19TSVpFX0siOjEyOCBpZiBLPj00MDAwIGVsc2UgNjQsIkdST1VQX1NJWkVfTSI6OCwibnVtX3dhcnBzIjo4IGlmIE4+PTEwMDAwIGVsc2UgNCwibnVtX3N0YWdlcyI6NCBpZiBLPj00MDAwIGVsc2UgM30KICAgIGZuID0gZiJOPXtOfSxLPXtLfSxkZXZpY2VfbmFtZT17ZG59LGR0eXBlPWZwOF93OGE4LGJsb2NrX3NoYXBlPVsxMjgsIDEyOF0uanNvbiIKICAgIGZwID0gb3MucGF0aC5qb2luKENGRywgZm4pCiAgICBpZiBub3Qgb3MucGF0aC5leGlzdHMoZnApOgogICAgICAgIHRyeToKICAgICAgICAgICAgd2l0aCBvcGVuKGZwLCJ3IikgYXMgZjogZi53cml0ZShqc29uLmR1bXBzKGMpKQogICAgICAgICAgICBwcmludChmIkNyZWF0ZWQ6IHtmbn0iKQogICAgICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZTogcHJpbnQoZiJGYWlsZWQ6IHtlfSIp" | base64 -d | python3 &&
               python3 -m vllm.entrypoints.openai.api_server
               --model {{inputs.parameters.modelName}}
               --dtype {{inputs.parameters.dataType}}
@@ -171,38 +72,3 @@ print(f"FP8 config generation complete! Generated {generated} new configs.")
           env:
             - name: MODEL
               value: "{{inputs.parameters.modelName}}"
-            - name: HF_HOME
-              value: "/hf-home"
-            - name: VLLM_CACHE_DIR
-              value: "/tmp/vllm"
-          resources:
-            requests:
-              memory: "32Gi"
-              cpu: "4000m"
-            limits:
-              memory: "64Gi"
-              cpu: "8000m"
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 600
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 5
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 600
-            periodSeconds: 15
-            timeoutSeconds: 10
-            failureThreshold: 5
-          startupProbe:
-            httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 120
-            periodSeconds: 30
-            timeoutSeconds: 15
-            failureThreshold: 40
