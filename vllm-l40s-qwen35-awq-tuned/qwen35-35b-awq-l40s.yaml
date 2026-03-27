@@ -9,7 +9,7 @@ metadata:
     executables.ai.sap.com/name: "qwen35-35b-awq-tuned"
   labels:
     scenarios.ai.sap.com/id: "qwen35-35b-awq-tuned"
-    ai.sap.com/version: "1.0.9"
+    ai.sap.com/version: "1.1.0"
 spec:
   inputs:
     parameters:
@@ -21,11 +21,11 @@ spec:
       - name: gpuMemoryUtilization
         default: "0.92"
       - name: maxTokenLen
-        default: "32768"
-      - name: maxNumBatchedTokens
         default: "65536"
+      - name: maxNumBatchedTokens
+        default: "131072"
       - name: maxNumSeqs
-        default: "128"
+        default: "512"
       - name: resourcePlan
         type: "string"
         default: "train.l"
@@ -34,7 +34,7 @@ spec:
     metadata:
       annotations: |
         autoscaling.knative.dev/metric: "concurrency"
-        autoscaling.knative.dev/target: "20"
+        autoscaling.knative.dev/target: "10"
         autoscaling.knative.dev/targetBurstCapacity: "-1"
       labels: |
         ai.sap.com/resourcePlan: "{{inputs.parameters.resourcePlan}}"
@@ -43,7 +43,7 @@ spec:
         imagePullSecrets:
         - name: ollamadocker
         minReplicas: 1
-        maxReplicas: 1
+        maxReplicas: 2
         containers:
         - name: kserve-container
           image: docker.io/gjkarthik/vllm:l40s-fp8-tuned
@@ -68,7 +68,10 @@ spec:
               --max-model-len {{inputs.parameters.maxTokenLen}}
               --max-num-batched-tokens {{inputs.parameters.maxNumBatchedTokens}}
               --max-num-seqs {{inputs.parameters.maxNumSeqs}}
-              --kv-cache-dtype fp8
+              --quantization compressed-tensors
+              --kv-cache-dtype fp8_e4m3
+              --block-size 16
+              --scheduler-delay-factor 0.0
               --enable-prefix-caching
               --enable-chunked-prefill
               --trust-remote-code
