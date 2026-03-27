@@ -9,7 +9,7 @@ metadata:
     executables.ai.sap.com/name: "qwen35-35b-awq-l40s"
   labels:
     scenarios.ai.sap.com/id: "qwen35-35b-awq-l40s"
-    ai.sap.com/version: "1.0.3"
+    ai.sap.com/version: "1.0.4"
 spec:
   inputs:
     parameters:
@@ -52,11 +52,13 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - >
-              set -e && 
-              pip install --no-deps --upgrade "transformers>=5.3.0" "huggingface_hub>=0.28.0" &&
-              echo "Pre-downloading model to patch config..." &&
-              python3 -c "from huggingface_hub import snapshot_download; snapshot_download('cyankiwi/Qwen3.5-35B-A3B-AWQ-4bit')" &&
-              echo "aW1wb3J0IGpzb24sIGdsb2IsIG9zCnBhdGhzID0gZ2xvYi5nbG9iKCcvcm9vdC8uY2FjaGUvaHVnZ2luZ2ZhY2UvaHViL21vZGVscy0tY3lhbmtpd2ktLVF3ZW4zLjUtMzVCLUEzQi1BV1EtNGJpdC9zbmFwc2hvdHMvKi9jb25maWcuanNvbicpCmlmIG5vdCBwYXRoczogcGF0aHMgPSBnbG9iLmdsb2IoJy90bXAvaHVnZ2luZ2ZhY2UvaHViL21vZGVscy0tY3lhbmtpd2ktLVF3ZW4zLjUtMzVCLUEzQi1BV1EtNGJpdC9zbmFwc2hvdHMvKi9jb25maWcuanNvbicpCmlmIG5vdCBwYXRoczogcGF0aHMgPSBnbG9iLmdsb2IoJy9ub25leGlzdGVudC8uY2FjaGUvaHVnZ2luZ2ZhY2UvaHViL21vZGVscy0tY3lhbmtpd2ktLVF3ZW4zLjUtMzVCLUEzQi1BV1EtNGJpdC9zbmFwc2hvdHMvKi9jb25maWcuanNvbicpCmZvciBwIGluIHBhdGhzOgogICAgd2l0aCBvcGVuKHAsICdyJykgYXMgZjogY29uZmlnID0ganNvbi5sb2FkKGYpCiAgICBpZiAncm9wZV9zY2FsaW5nJyBpbiBjb25maWc6CiAgICAgICAgY29uZmlnWydyb3BlX3NjYWxpbmcnXSA9IHsndHlwZSc6ICdsaW5lYXInLCAnZmFjdG9yJzogMS4wfQogICAgICAgIHdpdGggb3BlbihwLCAndycpIGFzIGY6IGpzb24uZHVtcChjb25maWcsIGYpCiAgICAgICAgcHJpbnQoZidQYXRjaGVkIHtwfScp" | base64 -d | python3 || true &&
+              set -e &&
+              pip install --no-deps --upgrade "transformers>=5.4.0" "huggingface_hub>=0.28.0" &&
+              chmod -R 777 /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/utils/configs 2>/dev/null || true &&
+              TF_FILE="$(python3 -m pip show transformers | awk -F': ' '/^Location:/{print $2}')/transformers/modeling_rope_utils.py" &&
+              sed -i.bak 's|ignore_keys_at_rope_validation = \(set() if ignore_keys_at_rope_validation is None else ignore_keys_at_rope_validation\)|ignore_keys_at_rope_validation = set(ignore_keys_at_rope_validation or [])|' "$TF_FILE" &&
+              echo "RoPE validator patched for Qwen3.5" &&
+              echo "aW1wb3J0IG9zLCBqc29uLCBzeXMKdHJ5OgogICAgaW1wb3J0IHRvcmNoCiAgICBpZiBub3QgdG9yY2guY3VkYS5pc19hdmFpbGFibGUoKTogc3lzLmV4aXQoMCkKICAgIGRuID0gdG9yY2guY3VkYS5nZXRfZGV2aWNlX25hbWUoMCkucmVwbGFjZSgiICIsICJfIikKICAgIGlmICJMNDAiIG5vdCBpbiBkbjogc3lzLmV4aXQoMCkKZXhjZXB0OiBzeXMuZXhpdCgwKQoKIyBGUDggVzhBOCBCbG9jayBrZXJuZWwgY29uZmlncyBvbmx5IChubyBNb0UgY29uZmlnKQpESU1TID0gWygxMjI4OCwyMDQ4KSwoMjA0OCw0MDk2KSwoMTAyNCwyMDQ4KSwoMjA0OCw1MTIpLCg5MjE2LDIwNDgpXQpDRkcgPSAiL3Vzci9sb2NhbC9saWIvcHl0aG9uMy4xMi9kaXN0LXBhY2thZ2VzL3ZsbG0vbW9kZWxfZXhlY3V0b3IvbGF5ZXJzL3F1YW50aXphdGlvbi91dGlscy9jb25maWdzIgpmb3IgTiwgSyBpbiBESU1TOgogICAgY2ZnX2RhdGEgPSB7fQogICAgZm9yIGJzIGluIFsxLDIsNCw4LDE2LDMyLDY0LDEyOF06CiAgICAgICAgY2ZnX2RhdGFbc3RyKGJzKV0gPSB7IkJMT0NLX1NJWkVfTSI6IDE2IGlmIGJzIDw9IDggZWxzZSAzMiBpZiBicyA8PSAzMiBlbHNlIDY0LCAiQkxPQ0tfU0laRV9OIjogMjU2IGlmIE4gPj0gMTAwMDAgZWxzZSAxMjgsICJCTE9DS19TSVpFX0siOiAxMjggaWYgSyA+PSA0MDAwIGVsc2UgNjQsICJHUk9VUF9TSVpFX00iOiAxNiwgIm51bV93YXJwcyI6IDggaWYgTiA+PSAxMDAwMCBlbHNlIDQsICJudW1fc3RhZ2VzIjogM30KICAgIGZuID0gZiJOPXtOfSxLPXtLfSxkZXZpY2VfbmFtZT17ZG59LGR0eXBlPWZwOF93OGE4LGJsb2NrX3NoYXBlPVsxMjgsMTI4XS5qc29uIgogICAgZnAgPSBvcy5wYXRoLmpvaW4oQ0ZHLCBmbikKICAgIGlmIG5vdCBvcy5wYXRoLmV4aXN0cyhmcCk6CiAgICAgICAgdHJ5OgogICAgICAgICAgICB3aXRoIG9wZW4oZnAsInciKSBhcyBmOiBqc29uLmR1bXAoY2ZnX2RhdGEsIGYsIGluZGVudD0yKQogICAgICAgICAgICBwcmludChmIkNyZWF0ZWQgRlA4OiB7Zm59IikKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6IHByaW50KGYiRmFpbGVkIEZQODoge2V9Iik=" | base64 -d | python3 &&
               python3 -m vllm.entrypoints.openai.api_server
               --model {{inputs.parameters.modelName}}
               --dtype {{inputs.parameters.dataType}}
@@ -68,9 +70,8 @@ spec:
               --enable-chunked-prefill
               --tensor-parallel-size 1
               --language-model-only
-              --quantization awq
               --kv-cache-dtype fp8
-              --trust-remote-code
+              --quantization awq
           env:
             - name: MODEL
               value: "{{inputs.parameters.modelName}}"
