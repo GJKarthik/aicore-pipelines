@@ -9,7 +9,7 @@ metadata:
     executables.ai.sap.com/name: "qwen35-35b-awq-tuned"
   labels:
     scenarios.ai.sap.com/id: "qwen35-35b-awq-tuned"
-    ai.sap.com/version: "1.0.8"
+    ai.sap.com/version: "1.0.9"
 spec:
   inputs:
     parameters:
@@ -68,7 +68,7 @@ spec:
               --max-model-len {{inputs.parameters.maxTokenLen}}
               --max-num-batched-tokens {{inputs.parameters.maxNumBatchedTokens}}
               --max-num-seqs {{inputs.parameters.maxNumSeqs}}
-              --kv-cache-dtype fp8_e5m2
+              --kv-cache-dtype fp8
               --enable-prefix-caching
               --enable-chunked-prefill
               --trust-remote-code
