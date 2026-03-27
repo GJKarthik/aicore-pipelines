@@ -9,7 +9,7 @@ metadata:
     executables.ai.sap.com/name: "qwen35-35b-awq-l40s"
   labels:
     scenarios.ai.sap.com/id: "qwen35-35b-awq-l40s"
-    ai.sap.com/version: "1.0.1"
+    ai.sap.com/version: "1.0.2"
 spec:
   inputs:
     parameters:
@@ -68,7 +68,7 @@ spec:
               --quantization awq
               --kv-cache-dtype fp8
               --trust-remote-code
-              --rope-scaling '{"type": "linear", "factor": 1.0}'
+              --hf-overrides '{"rope_scaling": {"rope_type": "linear", "factor": 1.0}}'
           env:
             - name: MODEL
               value: "{{inputs.parameters.modelName}}"
