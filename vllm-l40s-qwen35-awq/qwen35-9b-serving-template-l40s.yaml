@@ -9,7 +9,7 @@ metadata:
     executables.ai.sap.com/name: "qwen35-35b-awq-l40s"
   labels:
     scenarios.ai.sap.com/id: "qwen35-35b-awq-l40s"
-    ai.sap.com/version: "1.0.5"
+    ai.sap.com/version: "1.0.6"
 spec:
   inputs:
     parameters:
@@ -73,7 +73,6 @@ spec:
               --tensor-parallel-size 1
               --language-model-only
               --kv-cache-dtype fp8
-              --quantization awq
           env:
             - name: MODEL
               value: "{{inputs.parameters.modelName}}"
