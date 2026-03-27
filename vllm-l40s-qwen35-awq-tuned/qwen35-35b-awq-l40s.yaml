@@ -1,14 +1,14 @@
 apiVersion: ai.sap.com/v1alpha1
 kind: ServingTemplate
 metadata:
-  name: qwen35-35b-awq-l40s
+  name: qwen35-35b-awq-tuned
   annotations:
     scenarios.ai.sap.com/description: "Qwen 3.5 35B MoE AWQ 4-bit for L40S - High TPS Optimized"
-    scenarios.ai.sap.com/name: "qwen35-35b-awq-l40s"
+    scenarios.ai.sap.com/name: "qwen35-35b-awq-tuned"
     executables.ai.sap.com/description: "Qwen 3.5 35B MoE AWQ 4-bit for L40S"
-    executables.ai.sap.com/name: "qwen35-35b-awq-l40s"
+    executables.ai.sap.com/name: "qwen35-35b-awq-tuned"
   labels:
-    scenarios.ai.sap.com/id: "qwen35-35b-awq-l40s"
+    scenarios.ai.sap.com/id: "qwen35-35b-awq-tuned"
     ai.sap.com/version: "1.0.7"
 spec:
   inputs:
