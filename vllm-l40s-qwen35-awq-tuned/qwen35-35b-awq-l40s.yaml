@@ -1,0 +1,79 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: qwen35-35b-awq-l40s
+  annotations:
+    scenarios.ai.sap.com/description: "Qwen 3.5 35B MoE AWQ 4-bit for L40S - High TPS Optimized"
+    scenarios.ai.sap.com/name: "qwen35-35b-awq-l40s"
+    executables.ai.sap.com/description: "Qwen 3.5 35B MoE AWQ 4-bit for L40S"
+    executables.ai.sap.com/name: "qwen35-35b-awq-l40s"
+  labels:
+    scenarios.ai.sap.com/id: "qwen35-35b-awq-l40s"
+    ai.sap.com/version: "1.0.7"
+spec:
+  inputs:
+    parameters:
+      - name: modelName
+        default: "cyankiwi/Qwen3.5-35B-A3B-AWQ-4bit" 
+        type: string
+      - name: dataType
+        default: "auto"
+      - name: gpuMemoryUtilization
+        default: "0.92"
+      - name: maxTokenLen
+        default: "32768"
+      - name: maxNumBatchedTokens
+        default: "65536"
+      - name: maxNumSeqs
+        default: "128"
+      - name: resourcePlan
+        type: "string"
+        default: "train.l"
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      annotations: |
+        autoscaling.knative.dev/metric: "concurrency"
+        autoscaling.knative.dev/target: "20"
+        autoscaling.knative.dev/targetBurstCapacity: "-1"
+      labels: |
+        ai.sap.com/resourcePlan: "{{inputs.parameters.resourcePlan}}"
+    spec: |
+      predictor:
+        imagePullSecrets:
+        - name: ollamadocker
+        minReplicas: 1
+        maxReplicas: 1
+        containers:
+        - name: kserve-container
+          image: docker.io/gjkarthik/vllm:l40s-fp8-tuned
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              set -e &&
+              pip install --no-deps --upgrade "transformers>=5.4.0" "huggingface_hub>=0.28.0" &&
+              chmod -R 777 /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/utils/configs 2>/dev/null || true &&
+              TF_LOC="$(python3 -c 'import transformers; import os; print(os.path.dirname(transformers.__file__))')" &&
+              TF_FILE="$TF_LOC/modeling_rope_utils.py" &&
+              sed -i.bak 's/received_keys -= ignore_keys/received_keys -= set(ignore_keys) if isinstance(ignore_keys, list) else ignore_keys/' "$TF_FILE" &&
+              echo "RoPE validator patched for Qwen3.5" &&
+              echo "aW1wb3J0IG9zLCBqc29uLCBzeXMKdHJ5OgogICAgaW1wb3J0IHRvcmNoCiAgICBpZiBub3QgdG9yY2guY3VkYS5pc19hdmFpbGFibGUoKTogc3lzLmV4aXQoMCkKICAgIGRuID0gdG9yY2guY3VkYS5nZXRfZGV2aWNlX25hbWUoMCkucmVwbGFjZSgiICIsICJfIikKICAgIGlmICJMNDAiIG5vdCBpbiBkbjogc3lzLmV4aXQoMCkKZXhjZXB0OiBzeXMuZXhpdCgwKQoKIyBGUDggVzhBOCBCbG9jayBrZXJuZWwgY29uZmlncyBvbmx5IChubyBNb0UgY29uZmlnKQpESU1TID0gWygxMjI4OCwyMDQ4KSwoMjA0OCw0MDk2KSwoMTAyNCwyMDQ4KSwoMjA0OCw1MTIpLCg5MjE2LDIwNDgpXQpDRkcgPSAiL3Vzci9sb2NhbC9saWIvcHl0aG9uMy4xMi9kaXN0LXBhY2thZ2VzL3ZsbG0vbW9kZWxfZXhlY3V0b3IvbGF5ZXJzL3F1YW50aXphdGlvbi91dGlscy9jb25maWdzIgpmb3IgTiwgSyBpbiBESU1TOgogICAgY2ZnX2RhdGEgPSB7fQogICAgZm9yIGJzIGluIFsxLDIsNCw4LDE2LDMyLDY0LDEyOF06CiAgICAgICAgY2ZnX2RhdGFbc3RyKGJzKV0gPSB7IkJMT0NLX1NJWkVfTSI6IDE2IGlmIGJzIDw9IDggZWxzZSAzMiBpZiBicyA8PSAzMiBlbHNlIDY0LCAiQkxPQ0tfU0laRV9OIjogMjU2IGlmIE4gPj0gMTAwMDAgZWxzZSAxMjgsICJCTE9DS19TSVpFX0siOiAxMjggaWYgSyA+PSA0MDAwIGVsc2UgNjQsICJHUk9VUF9TSVpFX00iOiAxNiwgIm51bV93YXJwcyI6IDggaWYgTiA+PSAxMDAwMCBlbHNlIDQsICJudW1fc3RhZ2VzIjogM30KICAgIGZuID0gZiJOPXtOfSxLPXtLfSxkZXZpY2VfbmFtZT17ZG59LGR0eXBlPWZwOF93OGE4LGJsb2NrX3NoYXBlPVsxMjgsMTI4XS5qc29uIgogICAgZnAgPSBvcy5wYXRoLmpvaW4oQ0ZHLCBmbikKICAgIGlmIG5vdCBvcy5wYXRoLmV4aXN0cyhmcCk6CiAgICAgICAgdHJ5OgogICAgICAgICAgICB3aXRoIG9wZW4oZnAsInciKSBhcyBmOiBqc29uLmR1bXAoY2ZnX2RhdGEsIGYsIGluZGVudD0yKQogICAgICAgICAgICBwcmludChmIkNyZWF0ZWQgRlA4OiB7Zm59IikKICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6IHByaW50KGYiRmFpbGVkIEZQODoge2V9Iik=" | base64 -d | python3 &&
+              python3 -m vllm.entrypoints.openai.api_server
+              --model {{inputs.parameters.modelName}}
+              --dtype {{inputs.parameters.dataType}}
+              --gpu-memory-utilization {{inputs.parameters.gpuMemoryUtilization}}
+              --max-model-len {{inputs.parameters.maxTokenLen}}
+              --max-num-batched-tokens {{inputs.parameters.maxNumBatchedTokens}}
+              --max-num-seqs {{inputs.parameters.maxNumSeqs}}
+              --num-scheduler-steps 10
+              --kv-cache-dtype fp8_e5m2
+              --enable-prefix-caching
+              --enable-chunked-prefill
+              --trust-remote-code
+              --tensor-parallel-size 1
+          env:
+            - name: MODEL
+              value: "{{inputs.parameters.modelName}}"
