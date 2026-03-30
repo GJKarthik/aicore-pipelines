@@ -19,11 +19,11 @@ spec:
       - name: dataType
         default: "auto"
       - name: gpuMemoryUtilization
-        default: "0.95"
+        default: "0.96"
       - name: maxTokenLen
-        default: "16384"
+        default: "24576"
       - name: maxNumBatchedTokens
-        default: "32768"
+        default: "45000"
       - name: maxNumSeqs
         default: "64"
       - name: kvCacheDtype
