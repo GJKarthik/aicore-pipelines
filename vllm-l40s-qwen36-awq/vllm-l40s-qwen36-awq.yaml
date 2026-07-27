@@ -9,7 +9,7 @@ metadata:
     executables.ai.sap.com/name: "qwen36-awq-l40s"
   labels:
     scenarios.ai.sap.com/id: "qwen36-awq-l40s"
-    ai.sap.com/version: "1.0.0"
+    ai.sap.com/version: "1.0.1"
 spec:
   inputs:
     parameters:
@@ -53,7 +53,7 @@ spec:
           args:
             - >
               set -e &&
-              pip install --no-deps --upgrade "transformers>=5.3.0" "huggingface_hub>=0.28.0" &&
+              pip install --no-deps --upgrade "transformers>=5.3.0" "huggingface_hub>=0.28.0" "safetensors>=0.8.0" &&
               python3 -m vllm.entrypoints.openai.api_server
               --model {{inputs.parameters.modelName}}
               --dtype {{inputs.parameters.dataType}}
