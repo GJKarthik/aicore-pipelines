@@ -66,6 +66,8 @@ spec:
               --enable-chunked-prefill
               --tensor-parallel-size 1
               --language-model-only
+              --enable-auto-tool-choice
+              --tool-call-parser qwen3_coder
           env:
             - name: MODEL
               value: "{{inputs.parameters.modelName}}"
